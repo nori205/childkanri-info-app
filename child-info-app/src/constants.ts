@@ -130,8 +130,11 @@ export const VACCINE_WARN_DAYS = 7
 // ステップ⑥：ライセンス管理
 // ===========================
 
-// 解除コード（固定）
-export const LICENSE_CODE = 'KODOMEMO25'
+// 解除コード（環境変数から読み込む）
+// ローカル: .env の VITE_LICENSE_CODE
+// Vercel: Settings > Environment Variables > VITE_LICENSE_CODE
+// 環境変数が未設定の場合は空文字（どのコードでも解除不可）
+export const LICENSE_CODE: string = import.meta.env.VITE_LICENSE_CODE ?? ''
 
 // ライセンス解除状態を保存するlocalStorageキー
 // ※アプリデータ（STORAGE_KEY）とは独立しているため、データには影響しない

@@ -2,3 +2,8 @@ node_modules/
 dist/
 .DS_Store
 *.local
+
+# 環境変数（解除コードを含むため必ずgit管理から除外する）
+.env
+.env.local
+.env.*.local
