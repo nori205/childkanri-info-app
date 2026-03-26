@@ -21,7 +21,7 @@ export const useLicense = (): UseLicenseReturn => {
 
   const unlock = (code: string): boolean => {
     // 大文字・前後の空白を無視して比較
-    if (code.trim().toUpperCase() === LICENSE_CODE) {
+    if (code.trim().toUpperCase() === LICENSE_CODE.toUpperCase()) {
       localStorage.setItem(LICENSE_STORAGE_KEY, 'unlocked')
       setIsUnlocked(true)
       return true
