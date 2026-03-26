@@ -22,14 +22,14 @@ const daysLater = (n: number): string => {
 const TaskSummary = ({ tasks }: TaskSummaryProps) => {
   const incompleteTasks = tasks.filter((t) => !t.completed)
   const todayStr = today()
-  const weekStr = daysLater(7)
+  const weekStr = daysLater(3)
 
   // 今日期限（期限が今日）
   const todayCount = incompleteTasks.filter(
     (t) => t.dueDate === todayStr,
   ).length
 
-  // 今週期限（今日より後、7日以内）
+  // 3日以内（今日より後、3日以内）
   const weekCount = incompleteTasks.filter(
     (t) => t.dueDate && t.dueDate > todayStr && t.dueDate <= weekStr,
   ).length
@@ -58,7 +58,7 @@ const TaskSummary = ({ tasks }: TaskSummaryProps) => {
       >
         <Clock size={16} className="text-gray-700" />
         <span className="text-2xl font-bold text-gray-800">{weekCount}</span>
-        <span className="text-xs text-gray-700 text-center leading-tight">今週期限</span>
+        <span className="text-xs text-gray-700 text-center leading-tight">3日以内</span>
       </div>
 
       {/* 未完了合計：青 #3291B6 */}
