@@ -195,27 +195,49 @@ const SummarySection = (props: SummarySectionProps) => {
 
   const [copied, setCopied] = useState(false)
 
-  // 印刷用ウィンドウを開いて印刷する
+  // 印刷する（ポップアップを使わず現ページで印刷）
   const handlePrint = () => {
     const text = buildSummaryText(props)
-    const win = window.open('', '_blank')
-    if (!win) return
-    win.document.write(`<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <title>こどめも - 提出用サマリー（${child.name}）</title>
-  <style>
-    body { font-family: 'Hiragino Sans', sans-serif; padding: 30px; line-height: 2; font-size: 13px; color: #333; }
-    pre { white-space: pre-wrap; font-family: inherit; }
-    @media print { body { padding: 10px; } }
-  </style>
-</head>
-<body><pre>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body>
-</html>`)
-    win.document.close()
-    win.focus()
-    setTimeout(() => { win.print(); win.close() }, 300)
+
+    // 既存の印刷用要素があれば削除
+    const existing = document.getElementById('kodome-print-area')
+    if (existing) existing.remove()
+    const existingStyle = document.getElementById('kodome-print-style')
+    if (existingStyle) existingStyle.remove()
+
+    // 印刷用スタイル（印刷時はアプリ本体を非表示にして印刷エリアだけ表示）
+    const style = document.createElement('style')
+    style.id = 'kodome-print-style'
+    style.textContent = `
+      @media print {
+        body > *:not(#kodome-print-area) { display: none !important; }
+        #kodome-print-area {
+          display: block !important;
+          font-family: 'Hiragino Sans', sans-serif;
+          padding: 20px;
+          line-height: 2;
+          font-size: 13px;
+          color: #333;
+          white-space: pre-wrap;
+        }
+      }
+    `
+    document.head.appendChild(style)
+
+    // 印刷用コンテンツを body に追加（画面上は非表示）
+    const div = document.createElement('div')
+    div.id = 'kodome-print-area'
+    div.style.display = 'none'
+    div.textContent = text
+    document.body.appendChild(div)
+
+    window.print()
+
+    // 印刷ダイアログを閉じた後にクリーンアップ
+    setTimeout(() => {
+      div.remove()
+      style.remove()
+    }, 1000)
   }
 
   // クリップボードへコピーする
