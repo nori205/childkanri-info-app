@@ -9,7 +9,10 @@
 // ===========================
 
 import { useState } from 'react'
-import { Lock, Unlock, X, KeyRound, CheckCircle2, Users } from 'lucide-react'
+import { Lock, Unlock, X, KeyRound, CheckCircle2, Users, ExternalLink } from 'lucide-react'
+
+// BOOTHの商品ページURL（環境変数で管理）
+const BOOTH_URL = import.meta.env.VITE_BOOTH_URL ?? ''
 
 // ── LicenseBanner ─────────────────────────────────────────
 // ページ最上部に常時表示するバナー
@@ -114,11 +117,37 @@ export const UnlockModal = ({ onClose, onUnlock }: UnlockModalProps) => {
               </button>
             </div>
 
-            {/* 説明 */}
-            <p className="text-sm text-dark-brown/70 mb-5">
-              解除コードを入力すると、健康・医療情報・ワクチン記録・提出用サマリー・
-              複数人登録などすべての機能が使えるようになります。
-            </p>
+            {/* できること説明 */}
+            <div className="bg-pink-soft/50 rounded-xl p-4 mb-4 space-y-1.5">
+              <p className="text-xs font-semibold text-rose-brown mb-2">解除すると使えるようになる機能</p>
+              {[
+                '子供を何人でも登録',
+                'アレルギー・病気履歴の記録',
+                'ワクチン接種記録・次回予定管理',
+                '通院・予約スケジュール管理',
+                '提出用サマリーをワンタップでコピー',
+              ].map((item) => (
+                <p key={item} className="text-xs text-dark-brown flex items-center gap-1.5">
+                  <span className="text-rose-brown">✓</span>{item}
+                </p>
+              ))}
+            </div>
+
+            {/* BOOTHへのリンク */}
+            {BOOTH_URL && (
+              <a
+                href={BOOTH_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 w-full bg-rose-brown text-cream py-2.5 rounded-xl font-medium text-sm hover:opacity-90 transition-opacity mb-4"
+              >
+                <ExternalLink size={14} />
+                解除コードをBOOTHで購入する
+              </a>
+            )}
+
+            {/* 区切り */}
+            <p className="text-xs text-center text-dark-brown/40 mb-4">すでにコードをお持ちの方</p>
 
             {/* 入力フォーム */}
             <form onSubmit={handleSubmit} className="space-y-4">

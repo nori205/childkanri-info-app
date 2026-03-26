@@ -2,7 +2,7 @@
 // アプリのルートコンポーネント
 // ===========================
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import Header from './components/Header'
 import ChildTabs from './components/ChildTabs'
@@ -40,6 +40,11 @@ import type {
 } from './types'
 import { STORAGE_KEY, DATA_VERSION, DEFAULT_FAMILY_INFO, FREE_CHILD_LIMIT } from './constants'
 import type { FamilyMember } from './types'
+
+// バックアップリマインドのlocalStorageキー
+const BACKUP_LAST_KEY = 'child-info-app-last-backup'
+// 何日経ったらリマインドするか
+const BACKUP_REMIND_DAYS = 7
 
 // localStorageからアプリデータを読み込む
 // ※ライセンスデータは別キー（LICENSE_STORAGE_KEY）で管理するためここには含まない
@@ -113,6 +118,21 @@ const App = () => {
   // ── モーダルの表示状態 ────────────────────────────
 
   const [isChildModalOpen, setIsChildModalOpen] = useState(false)
+  // バックアップリマインドバナーの表示状態
+  const [showBackupReminder, setShowBackupReminder] = useState(false)
+
+  // 起動時にバックアップリマインドを確認
+  useEffect(() => {
+    const last = localStorage.getItem(BACKUP_LAST_KEY)
+    if (!last) {
+      // 一度もバックアップしていない場合はデータがあれば表示
+      const hasData = !!localStorage.getItem(STORAGE_KEY)
+      if (hasData) setShowBackupReminder(true)
+      return
+    }
+    const daysSince = (Date.now() - Number(last)) / (1000 * 60 * 60 * 24)
+    if (daysSince >= BACKUP_REMIND_DAYS) setShowBackupReminder(true)
+  }, [])
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   // 解除コード入力モーダル
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false)
@@ -227,6 +247,26 @@ const App = () => {
         isUnlocked={isUnlocked}
         onUnlockClick={() => setIsUnlockModalOpen(true)}
       />
+
+      {/* バックアップリマインドバナー */}
+      {showBackupReminder && (
+        <div className="bg-amber-50 border-b border-amber-200">
+          <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
+            <p className="text-xs text-amber-700">
+              💾 データのバックアップをお忘れなく！「家族の共通情報」からいつでも保存できます
+            </p>
+            <button
+              onClick={() => {
+                setShowBackupReminder(false)
+                localStorage.setItem(BACKUP_LAST_KEY, String(Date.now()))
+              }}
+              className="flex-shrink-0 text-xs text-amber-600 font-medium underline underline-offset-2 hover:opacity-70"
+            >
+              閉じる
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* メインコンテンツ */}
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">

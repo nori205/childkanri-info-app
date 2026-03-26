@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState } from 'react'
-import { FileText, ClipboardCopy, Check, User, ShieldAlert, Stethoscope, Thermometer, Syringe, Phone, Lightbulb } from 'lucide-react'
+import { FileText, ClipboardCopy, Check, User, ShieldAlert, Stethoscope, Thermometer, Syringe, Phone, Lightbulb, Printer } from 'lucide-react'
 import Accordion from './health/Accordion'
 import type {
   Child,
@@ -195,6 +195,29 @@ const SummarySection = (props: SummarySectionProps) => {
 
   const [copied, setCopied] = useState(false)
 
+  // 印刷用ウィンドウを開いて印刷する
+  const handlePrint = () => {
+    const text = buildSummaryText(props)
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(`<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>こどめも - 提出用サマリー（${child.name}）</title>
+  <style>
+    body { font-family: 'Hiragino Sans', sans-serif; padding: 30px; line-height: 2; font-size: 13px; color: #333; }
+    pre { white-space: pre-wrap; font-family: inherit; }
+    @media print { body { padding: 10px; } }
+  </style>
+</head>
+<body><pre>${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre></body>
+</html>`)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print(); win.close() }, 300)
+  }
+
   // クリップボードへコピーする
   const handleCopy = async () => {
     const text = buildSummaryText(props)
@@ -353,27 +376,38 @@ const SummarySection = (props: SummarySectionProps) => {
         </div>
       </div>
 
-      {/* コピーボタン */}
-      <button
-        onClick={handleCopy}
-        className={`mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium shadow transition-all ${
-          copied
-            ? 'bg-green-500/80 text-white'
-            : 'bg-pink-muted text-cream hover:opacity-90 active:opacity-80'
-        }`}
-      >
-        {copied ? (
-          <>
-            <Check size={16} />
-            コピーしました！
-          </>
-        ) : (
-          <>
-            <ClipboardCopy size={16} />
-            クリップボードにコピー
-          </>
-        )}
-      </button>
+      {/* ボタン群 */}
+      <div className="mt-4 flex gap-2">
+        {/* コピーボタン */}
+        <button
+          onClick={handleCopy}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium shadow transition-all ${
+            copied
+              ? 'bg-green-500/80 text-white'
+              : 'bg-pink-muted text-cream hover:opacity-90 active:opacity-80'
+          }`}
+        >
+          {copied ? (
+            <>
+              <Check size={16} />
+              コピーしました！
+            </>
+          ) : (
+            <>
+              <ClipboardCopy size={16} />
+              コピー
+            </>
+          )}
+        </button>
+        {/* 印刷ボタン */}
+        <button
+          onClick={handlePrint}
+          className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-medium border border-pink-soft text-rose-brown bg-white hover:bg-pink-soft/30 transition-colors shadow-sm"
+        >
+          <Printer size={16} />
+          印刷
+        </button>
+      </div>
     </Accordion>
   )
 }
