@@ -3,10 +3,11 @@
 // ===========================
 
 import { AlertCircle, Clock, ListTodo } from 'lucide-react'
-import type { Task } from '../types'
+import type { Task, Appointment } from '../types'
 
 interface TaskSummaryProps {
   tasks: Task[]
+  appointments: Appointment[]
 }
 
 // 今日の日付文字列を返す（YYYY-MM-DD）
@@ -19,25 +20,25 @@ const daysLater = (n: number): string => {
   return d.toISOString().slice(0, 10)
 }
 
-const TaskSummary = ({ tasks }: TaskSummaryProps) => {
+const TaskSummary = ({ tasks, appointments }: TaskSummaryProps) => {
   const incompleteTasks = tasks.filter((t) => !t.completed)
   const todayStr = today()
   const weekStr = daysLater(3)
 
-  // 今日期限（期限が今日）
-  const todayCount = incompleteTasks.filter(
-    (t) => t.dueDate === todayStr,
-  ).length
+  // 今日期限（未完了タスク＋病院予約）
+  const todayCount =
+    incompleteTasks.filter((t) => t.dueDate === todayStr).length +
+    appointments.filter((ap) => ap.date === todayStr).length
 
-  // 3日以内（今日より後、3日以内）
-  const weekCount = incompleteTasks.filter(
-    (t) => t.dueDate && t.dueDate > todayStr && t.dueDate <= weekStr,
-  ).length
+  // 3日以内（未完了タスク＋病院予約）
+  const weekCount =
+    incompleteTasks.filter((t) => t.dueDate && t.dueDate > todayStr && t.dueDate <= weekStr).length +
+    appointments.filter((ap) => ap.date > todayStr && ap.date <= weekStr).length
 
-  // 未完了合計
+  // 未完了タスク合計
   const totalCount = incompleteTasks.length
 
-  if (totalCount === 0) return null
+  if (todayCount === 0 && weekCount === 0 && totalCount === 0) return null
 
   return (
     <div className="grid grid-cols-3 gap-2 mb-4">

@@ -10,6 +10,7 @@ import EmptyState from './components/EmptyState'
 import AddChildModal from './components/AddChildModal'
 import AddTaskModal from './components/AddTaskModal'
 import TaskSummary from './components/TaskSummary'
+import ScheduleView from './components/ScheduleView'
 import TaskList from './components/TaskList'
 import FamilyInfo from './components/FamilyInfo'
 import HealthSection from './components/health/HealthSection'
@@ -191,7 +192,7 @@ const App = () => {
     handleSaveFamilyInfo,
   )
 
-  const { addTask, toggleTask, deleteTask, getTasksByChildId } = useTasks(
+  const { tasks, addTask, toggleTask, deleteTask, getTasksByChildId } = useTasks(
     initialData.tasks,
     handleSaveTasks,
   )
@@ -226,6 +227,11 @@ const App = () => {
   const activeChild = children.find((c) => c.id === activeChildId)
   const activeTasks = activeChildId ? getTasksByChildId(activeChildId) : []
   const activeHealth = activeChildId ? getHealthByChildId(activeChildId) : null
+
+  // 全子供の予約（ScheduleView・TaskSummary用）
+  const allAppointments = children.flatMap((c) => getHealthByChildId(c.id).appointments)
+  // アクティブな子供の予約（TaskSummary用）
+  const activeAppointments = activeHealth?.appointments ?? []
 
   // ── 子供追加ボタンのハンドラ ──────────────────────
   // デモ版かつ既に上限人数に達している場合は制限モーダルを表示
@@ -270,6 +276,15 @@ const App = () => {
 
       {/* メインコンテンツ */}
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* 全子供の予定まとめ */}
+        {children.length > 0 && (
+          <ScheduleView
+            children={children}
+            tasks={tasks}
+            appointments={allAppointments}
+          />
+        )}
+
         {/* 子供セクション */}
         <section>
           <div className="flex items-center justify-between mb-3">
@@ -315,7 +330,7 @@ const App = () => {
                   タスクを追加
                 </button>
               </div>
-              <TaskSummary tasks={activeTasks} />
+              <TaskSummary tasks={activeTasks} appointments={activeAppointments} />
               <TaskList
                 tasks={activeTasks}
                 onToggle={toggleTask}
