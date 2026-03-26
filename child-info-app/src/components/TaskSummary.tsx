@@ -41,25 +41,34 @@ const TaskSummary = ({ tasks }: TaskSummaryProps) => {
 
   return (
     <div className="grid grid-cols-3 gap-2 mb-4">
-      {/* 今日期限 */}
-      <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex flex-col items-center gap-1">
-        <AlertCircle size={16} className="text-red-400" />
-        <span className="text-2xl font-bold text-red-500">{todayCount}</span>
-        <span className="text-xs text-red-400 text-center leading-tight">今日期限</span>
+      {/* 今日期限：赤 #D53E0F */}
+      <div
+        className="rounded-xl p-3 flex flex-col items-center gap-1"
+        style={{ backgroundColor: '#D53E0F' }}
+      >
+        <AlertCircle size={16} className="text-white" />
+        <span className="text-2xl font-bold text-white">{todayCount}</span>
+        <span className="text-xs text-white/90 text-center leading-tight">今日期限</span>
       </div>
 
-      {/* 今週期限 */}
-      <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 flex flex-col items-center gap-1">
-        <Clock size={16} className="text-orange-400" />
-        <span className="text-2xl font-bold text-orange-500">{weekCount}</span>
-        <span className="text-xs text-orange-400 text-center leading-tight">今週期限</span>
+      {/* 今週期限：黄 #FFD400（文字は暗い色） */}
+      <div
+        className="rounded-xl p-3 flex flex-col items-center gap-1"
+        style={{ backgroundColor: '#FFD400' }}
+      >
+        <Clock size={16} className="text-gray-700" />
+        <span className="text-2xl font-bold text-gray-800">{weekCount}</span>
+        <span className="text-xs text-gray-700 text-center leading-tight">今週期限</span>
       </div>
 
-      {/* 未完了合計 */}
-      <div className="bg-pink-soft/60 border border-pink-soft rounded-xl p-3 flex flex-col items-center gap-1">
-        <ListTodo size={16} className="text-rose-brown" />
-        <span className="text-2xl font-bold text-dark-brown">{totalCount}</span>
-        <span className="text-xs text-rose-brown text-center leading-tight">未完了合計</span>
+      {/* 未完了合計：青 #3291B6 */}
+      <div
+        className="rounded-xl p-3 flex flex-col items-center gap-1"
+        style={{ backgroundColor: '#3291B6' }}
+      >
+        <ListTodo size={16} className="text-white" />
+        <span className="text-2xl font-bold text-white">{totalCount}</span>
+        <span className="text-xs text-white/90 text-center leading-tight">未完了合計</span>
       </div>
     </div>
   )

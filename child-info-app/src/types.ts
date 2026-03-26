@@ -44,12 +44,19 @@ export interface ChildFormValues {
   bloodType: BloodType
 }
 
+// 家族メンバー（複数登録可）
+export interface FamilyMember {
+  id: string
+  name: string          // 名前
+  relationship: string  // 続柄（父・母・祖父・祖母など）
+  phone: string         // 電話番号（任意）
+}
+
 // 家族共通情報
 export interface FamilyInfo {
-  parentName: string        // 保護者名
-  emergencyContact: string  // 緊急連絡先
-  address: string           // 住所
-  updatedAt: string         // ISO形式
+  members: FamilyMember[]  // 家族メンバー一覧
+  address: string          // 住所（家族共通）
+  updatedAt: string        // ISO形式
 }
 
 // ===========================
@@ -136,6 +143,21 @@ export interface HealthMemo {
 }
 
 // ===========================
+// ステップ⑦：通院・予約管理
+// ===========================
+
+// 通院・予約の1件
+export interface Appointment {
+  id: string
+  childId: string
+  date: string        // YYYY-MM-DD（必須）
+  content: string     // 内容 例：小児科・療育・皮膚科（必須）
+  location: string    // 病院名・場所（任意）
+  memo: string        // メモ（任意）
+  createdAt: string
+}
+
+// ===========================
 // ステップ④：ワクチン記録
 // ===========================
 
@@ -179,4 +201,5 @@ export interface AppData {
   healthMemos: HealthMemo[] // ステップ③追加
   vaccineRecords: VaccineRecord[]  // ステップ④追加
   customVaccines: CustomVaccine[]  // ステップ④追加
+  appointments: Appointment[]      // ステップ⑦追加
 }

@@ -34,14 +34,16 @@ export const GRADE_TYPES: GradeType[] = [
 
 // 家族情報の初期値
 export const DEFAULT_FAMILY_INFO: FamilyInfo = {
-  parentName: '',
-  emergencyContact: '',
+  members: [],
   address: '',
   updatedAt: new Date().toISOString(),
 }
 
+// 無料版で追加できる医療情報の最大件数（カテゴリごと）
+export const FREE_HEALTH_LIMIT = 2
+
 // アプリ名
-export const APP_NAME = 'こども手帳'
+export const APP_NAME = 'こどめも'
 
 // ===========================
 // ステップ②：タスク管理

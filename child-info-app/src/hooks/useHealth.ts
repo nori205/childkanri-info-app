@@ -11,6 +11,7 @@ import type {
   VaccineRecord,
   VaccineType,
   CustomVaccine,
+  Appointment,
 } from '../types'
 
 // 子供IDで絞り込んだ健康情報
@@ -21,6 +22,7 @@ export interface ChildHealthData {
   healthMemo: HealthMemo | null
   vaccineRecords: VaccineRecord[]    // ステップ④追加
   customVaccines: CustomVaccine[]    // ステップ④追加
+  appointments: Appointment[]        // ステップ⑦追加
 }
 
 // onSaveに渡すデータ型
@@ -31,6 +33,7 @@ interface HealthSaveData {
   healthMemos: HealthMemo[]
   vaccineRecords: VaccineRecord[]
   customVaccines: CustomVaccine[]
+  appointments: Appointment[]        // ステップ⑦追加
 }
 
 interface UseHealthReturn {
@@ -52,6 +55,9 @@ interface UseHealthReturn {
   ) => void
   addCustomVaccine: (childId: string, values: Omit<CustomVaccine, 'id' | 'childId' | 'createdAt'>) => void
   deleteCustomVaccine: (id: string) => void
+  // 通院・予約管理（ステップ⑦追加）
+  addAppointment: (childId: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
+  deleteAppointment: (id: string) => void
   getHealthByChildId: (childId: string) => ChildHealthData
 }
 
@@ -66,6 +72,7 @@ export const useHealth = (
   initialHealthMemos: HealthMemo[],
   initialVaccineRecords: VaccineRecord[],
   initialCustomVaccines: CustomVaccine[],
+  initialAppointments: Appointment[],   // ステップ⑦追加
   onSave: (data: HealthSaveData) => void,
 ): UseHealthReturn => {
   const [doctors, setDoctors] = useState<Doctor[]>(initialDoctors)
@@ -74,6 +81,7 @@ export const useHealth = (
   const [healthMemos, setHealthMemos] = useState<HealthMemo[]>(initialHealthMemos)
   const [vaccineRecords, setVaccineRecords] = useState<VaccineRecord[]>(initialVaccineRecords)
   const [customVaccines, setCustomVaccines] = useState<CustomVaccine[]>(initialCustomVaccines)
+  const [appointments, setAppointments] = useState<Appointment[]>(initialAppointments)  // ステップ⑦追加
 
   // 保存ヘルパー（全stateをまとめてonSaveへ渡す）
   const save = useCallback(
@@ -88,18 +96,18 @@ export const useHealth = (
       const next: Doctor = { id: generateId(), childId, ...values, createdAt: new Date().toISOString() }
       const d = [...doctors, next]
       setDoctors(d)
-      save({ doctors: d, allergies, illnesses, healthMemos, vaccineRecords, customVaccines })
+      save({ doctors: d, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   const deleteDoctor = useCallback(
     (id: string) => {
       const d = doctors.filter((x) => x.id !== id)
       setDoctors(d)
-      save({ doctors: d, allergies, illnesses, healthMemos, vaccineRecords, customVaccines })
+      save({ doctors: d, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // ── アレルギー ────────────────────────
@@ -109,18 +117,18 @@ export const useHealth = (
       const next: Allergy = { id: generateId(), childId, ...values, createdAt: new Date().toISOString() }
       const a = [...allergies, next]
       setAllergies(a)
-      save({ doctors, allergies: a, illnesses, healthMemos, vaccineRecords, customVaccines })
+      save({ doctors, allergies: a, illnesses, healthMemos, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   const deleteAllergy = useCallback(
     (id: string) => {
       const a = allergies.filter((x) => x.id !== id)
       setAllergies(a)
-      save({ doctors, allergies: a, illnesses, healthMemos, vaccineRecords, customVaccines })
+      save({ doctors, allergies: a, illnesses, healthMemos, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // ── 病気履歴 ──────────────────────────
@@ -130,18 +138,18 @@ export const useHealth = (
       const next: Illness = { id: generateId(), childId, ...values, createdAt: new Date().toISOString() }
       const il = [...illnesses, next]
       setIllnesses(il)
-      save({ doctors, allergies, illnesses: il, healthMemos, vaccineRecords, customVaccines })
+      save({ doctors, allergies, illnesses: il, healthMemos, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   const deleteIllness = useCallback(
     (id: string) => {
       const il = illnesses.filter((x) => x.id !== id)
       setIllnesses(il)
-      save({ doctors, allergies, illnesses: il, healthMemos, vaccineRecords, customVaccines })
+      save({ doctors, allergies, illnesses: il, healthMemos, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // ── 気づきメモ ────────────────────────
@@ -154,9 +162,9 @@ export const useHealth = (
         ? healthMemos.map((m) => m.childId === childId ? { ...m, content, updatedAt: now } : m)
         : [...healthMemos, { childId, content, updatedAt: now }]
       setHealthMemos(hm)
-      save({ doctors, allergies, illnesses, healthMemos: hm, vaccineRecords, customVaccines })
+      save({ doctors, allergies, illnesses, healthMemos: hm, vaccineRecords, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // ── ワクチン記録（ステップ④） ─────────
@@ -195,9 +203,9 @@ export const useHealth = (
             },
           ]
       setVaccineRecords(vr)
-      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords: vr, customVaccines })
+      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords: vr, customVaccines, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // 個別ワクチンを追加する
@@ -211,9 +219,9 @@ export const useHealth = (
       }
       const cv = [...customVaccines, next]
       setCustomVaccines(cv)
-      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines: cv })
+      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines: cv, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // 個別ワクチンを削除する
@@ -221,9 +229,37 @@ export const useHealth = (
     (id: string) => {
       const cv = customVaccines.filter((x) => x.id !== id)
       setCustomVaccines(cv)
-      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines: cv })
+      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines: cv, appointments })
     },
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, save],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
+  )
+
+  // ── 通院・予約管理（ステップ⑦） ──────
+
+  // 予約を追加する
+  const addAppointment = useCallback(
+    (childId: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => {
+      const next: Appointment = {
+        id: generateId(),
+        childId,
+        ...values,
+        createdAt: new Date().toISOString(),
+      }
+      const ap = [...appointments, next]
+      setAppointments(ap)
+      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments: ap })
+    },
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
+  )
+
+  // 予約を削除する
+  const deleteAppointment = useCallback(
+    (id: string) => {
+      const ap = appointments.filter((x) => x.id !== id)
+      setAppointments(ap)
+      save({ doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments: ap })
+    },
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments, save],
   )
 
   // ── 子供IDで絞り込み ──────────────────
@@ -238,8 +274,12 @@ export const useHealth = (
       healthMemo: healthMemos.find((m) => m.childId === childId) ?? null,
       vaccineRecords: vaccineRecords.filter((r) => r.childId === childId),
       customVaccines: customVaccines.filter((cv) => cv.childId === childId),
+      // 日付順にソートして返す
+      appointments: appointments
+        .filter((ap) => ap.childId === childId)
+        .sort((a, b) => a.date.localeCompare(b.date)),
     }),
-    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines],
+    [doctors, allergies, illnesses, healthMemos, vaccineRecords, customVaccines, appointments],
   )
 
   return {
@@ -253,6 +293,8 @@ export const useHealth = (
     upsertVaccineRecord,
     addCustomVaccine,
     deleteCustomVaccine,
+    addAppointment,      // ステップ⑦追加
+    deleteAppointment,   // ステップ⑦追加
     getHealthByChildId,
   }
 }

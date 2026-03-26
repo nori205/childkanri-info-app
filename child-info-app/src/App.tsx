@@ -36,11 +36,37 @@ import type {
   VaccineRecord,
   VaccineType,
   CustomVaccine,
+  Appointment,
 } from './types'
 import { STORAGE_KEY, DATA_VERSION, DEFAULT_FAMILY_INFO, FREE_CHILD_LIMIT } from './constants'
+import type { FamilyMember } from './types'
 
 // localStorageからアプリデータを読み込む
 // ※ライセンスデータは別キー（LICENSE_STORAGE_KEY）で管理するためここには含まない
+// 旧フォーマット（parentName/emergencyContact）を新フォーマット（members）に移行する
+const migrateFamilyInfo = (raw: Record<string, unknown>): FamilyInfoType => {
+  if (!raw) return DEFAULT_FAMILY_INFO
+  // 旧フォーマット：parentNameフィールドが存在する場合
+  if ('parentName' in raw) {
+    const members: FamilyMember[] = []
+    if (raw.parentName) {
+      members.push({
+        id: crypto.randomUUID(),
+        name: raw.parentName as string,
+        relationship: '保護者',
+        phone: (raw.emergencyContact as string) ?? '',
+      })
+    }
+    return {
+      members,
+      address: (raw.address as string) ?? '',
+      updatedAt: (raw.updatedAt as string) ?? new Date().toISOString(),
+    }
+  }
+  // 新フォーマットのままを返す
+  return raw as unknown as FamilyInfoType
+}
+
 const loadAppData = (): AppData => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -49,7 +75,7 @@ const loadAppData = (): AppData => {
     return {
       version: data.version ?? DATA_VERSION,
       children: data.children ?? [],
-      familyInfo: data.familyInfo ?? DEFAULT_FAMILY_INFO,
+      familyInfo: migrateFamilyInfo(data.familyInfo as unknown as Record<string, unknown>),
       tasks: data.tasks ?? [],
       doctors: data.doctors ?? [],
       allergies: data.allergies ?? [],
@@ -57,6 +83,7 @@ const loadAppData = (): AppData => {
       healthMemos: data.healthMemos ?? [],
       vaccineRecords: data.vaccineRecords ?? [],
       customVaccines: data.customVaccines ?? [],
+      appointments: data.appointments ?? [],    // ステップ⑦追加
     }
   } catch {
     return {
@@ -70,6 +97,7 @@ const loadAppData = (): AppData => {
       healthMemos: [],
       vaccineRecords: [],
       customVaccines: [],
+      appointments: [],                          // ステップ⑦追加
     }
   }
 }
@@ -120,6 +148,7 @@ const App = () => {
       healthMemos: HealthMemo[]
       vaccineRecords: VaccineRecord[]
       customVaccines: CustomVaccine[]
+      appointments: Appointment[]    // ステップ⑦追加
     }) => {
       const current = loadAppData()
       saveAppData({ ...current, ...data })
@@ -158,6 +187,8 @@ const App = () => {
     upsertVaccineRecord,
     addCustomVaccine,
     deleteCustomVaccine,
+    addAppointment,      // ステップ⑦追加
+    deleteAppointment,   // ステップ⑦追加
     getHealthByChildId,
   } = useHealth(
     initialData.doctors,
@@ -166,6 +197,7 @@ const App = () => {
     initialData.healthMemos,
     initialData.vaccineRecords,
     initialData.customVaccines,
+    initialData.appointments,   // ステップ⑦追加
     handleSaveHealth,
   )
 
@@ -251,39 +283,33 @@ const App = () => {
               />
             </section>
 
-            {/* 健康・医療情報セクション（有料機能） */}
+            {/* 健康・医療情報セクション（基本2件まで無料・ワクチン記録は有料） */}
             <section>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-rose-brown">健康・医療情報</h2>
-              </div>
-              <LicenseGate
-                isUnlocked={isUnlocked}
-                onUnlockClick={() => setIsUnlockModalOpen(true)}
-                featureName="健康・医療情報"
-                featureDescription="かかりつけ医・アレルギー・病気履歴・ワクチン記録などを管理できます"
-              >
-                {activeHealth && (
-                  <HealthSection
-                    health={activeHealth}
-                    onAddDoctor={(v) => addDoctor(activeChild.id, v)}
-                    onDeleteDoctor={deleteDoctor}
-                    onAddAllergy={(v) => addAllergy(activeChild.id, v)}
-                    onDeleteAllergy={deleteAllergy}
-                    onAddIllness={(v) => addIllness(activeChild.id, v)}
-                    onDeleteIllness={deleteIllness}
-                    onSaveHealthMemo={(c) => updateHealthMemo(activeChild.id, c)}
-                    onUpsertVaccineRecord={(
-                      name: string,
-                      type: VaccineType,
-                      vd: string,
-                      nd: string,
-                      memo: string,
-                    ) => upsertVaccineRecord(activeChild.id, name, type, vd, nd, memo)}
-                    onAddCustomVaccine={(v) => addCustomVaccine(activeChild.id, v)}
-                    onDeleteCustomVaccine={deleteCustomVaccine}
-                  />
-                )}
-              </LicenseGate>
+              {activeHealth && (
+                <HealthSection
+                  health={activeHealth}
+                  isUnlocked={isUnlocked}
+                  onUnlockClick={() => setIsUnlockModalOpen(true)}
+                  onAddDoctor={(v) => addDoctor(activeChild.id, v)}
+                  onDeleteDoctor={deleteDoctor}
+                  onAddAllergy={(v) => addAllergy(activeChild.id, v)}
+                  onDeleteAllergy={deleteAllergy}
+                  onAddIllness={(v) => addIllness(activeChild.id, v)}
+                  onDeleteIllness={deleteIllness}
+                  onSaveHealthMemo={(c) => updateHealthMemo(activeChild.id, c)}
+                  onUpsertVaccineRecord={(
+                    name: string,
+                    type: VaccineType,
+                    vd: string,
+                    nd: string,
+                    memo: string,
+                  ) => upsertVaccineRecord(activeChild.id, name, type, vd, nd, memo)}
+                  onAddCustomVaccine={(v) => addCustomVaccine(activeChild.id, v)}
+                  onDeleteCustomVaccine={deleteCustomVaccine}
+                  onAddAppointment={(v) => addAppointment(activeChild.id, v)}
+                  onDeleteAppointment={deleteAppointment}
+                />
+              )}
             </section>
 
             {/* 提出用サマリーセクション（有料機能） */}

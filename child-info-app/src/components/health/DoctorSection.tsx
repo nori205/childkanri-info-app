@@ -3,15 +3,18 @@
 // ===========================
 
 import { useState } from 'react'
-import { Stethoscope, Phone, Trash2, Plus, X } from 'lucide-react'
+import { Stethoscope, Phone, Trash2, Plus, X, Lock } from 'lucide-react'
 import Accordion from './Accordion'
 import type { Doctor } from '../../types'
-import { SPECIALTY_OPTIONS } from '../../constants'
+import { SPECIALTY_OPTIONS, FREE_HEALTH_LIMIT } from '../../constants'
 
 interface DoctorSectionProps {
   doctors: Doctor[]
   onAdd: (values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   onDelete: (id: string) => void
+  // 無料・有料制御（省略時は制限なし）
+  isUnlocked?: boolean
+  onUnlockClick?: () => void
 }
 
 // フォームの初期値
@@ -22,7 +25,9 @@ const emptyForm = () => ({
   memo: '',
 })
 
-const DoctorSection = ({ doctors, onAdd, onDelete }: DoctorSectionProps) => {
+const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockClick }: DoctorSectionProps) => {
+  // 無料版で追加上限に達しているか
+  const isLimitReached = !isUnlocked && doctors.length >= FREE_HEALTH_LIMIT
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
@@ -178,6 +183,15 @@ const DoctorSection = ({ doctors, onAdd, onDelete }: DoctorSectionProps) => {
             </button>
           </div>
         </div>
+      ) : isLimitReached ? (
+        // 無料上限到達時のロックCTA
+        <button
+          onClick={onUnlockClick}
+          className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-rose-brown/30 text-sm text-rose-brown/60 hover:bg-pink-soft/30 transition-colors"
+        >
+          <Lock size={15} />
+          無料は{FREE_HEALTH_LIMIT}件まで（解除して追加する）
+        </button>
       ) : (
         // 追加ボタン
         <button

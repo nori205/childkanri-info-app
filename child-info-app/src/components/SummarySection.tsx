@@ -138,8 +138,14 @@ const buildSummaryText = (props: SummarySectionProps): string => {
 
   // 【緊急連絡先】
   lines.push('【緊急連絡先】')
-  lines.push(`保護者名：${familyInfo.parentName || '未記入'}`)
-  lines.push(`電話番号：${familyInfo.emergencyContact || '未記入'}`)
+  if (familyInfo.members.length === 0) {
+    lines.push('未記入')
+  } else {
+    familyInfo.members.forEach((m) => {
+      const phonePart = m.phone ? `　${m.phone}` : ''
+      lines.push(`${m.relationship}：${m.name}${phonePart}`)
+    })
+  }
   if (familyInfo.address) lines.push(`住所：${familyInfo.address}`)
   lines.push('')
 
@@ -315,9 +321,22 @@ const SummarySection = (props: SummarySectionProps) => {
 
         {/* 緊急連絡先 */}
         <SectionLabel icon={<Phone size={14} />} label="緊急連絡先" />
-        <div className="space-y-1 pl-1">
-          <InfoRow label="保護者名" value={familyInfo.parentName} />
-          <InfoRow label="電話番号" value={familyInfo.emergencyContact} />
+        <div className="pl-1 space-y-1">
+          {familyInfo.members.length === 0 ? (
+            <NoneText />
+          ) : (
+            familyInfo.members.map((m) => (
+              <div key={m.id} className="text-sm text-dark-brown">
+                <span className="text-rose-brown/70 text-xs mr-1">{m.relationship}</span>
+                <span className="font-medium">{m.name}</span>
+                {m.phone && (
+                  <span className="text-dark-brown/60 text-xs ml-2 inline-flex items-center gap-0.5">
+                    <Phone size={10} />{m.phone}
+                  </span>
+                )}
+              </div>
+            ))
+          )}
           {familyInfo.address && <InfoRow label="住所" value={familyInfo.address} />}
         </div>
 

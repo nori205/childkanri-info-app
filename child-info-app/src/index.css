@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===========================
+   テーマカラー変数定義
+   RGBチャンネル形式で定義するとTailwindのopacity修飾子（/60など）が使える
+   =========================== */
+
+:root {
+  /* 共通背景カラー（全テーマ共通） */
+  --color-bg:   250 241 230;   /* #FAF1E6 アプリ背景 */
+  --color-card: 253 250 246;   /* #FDFAF6 カード内背景 */
+
+  /* テーマ① くすみピンク（デフォルト） */
+  --color-main:        169 139 118;  /* #A98B76 */
+  --color-backup-bg:   232 213 200;  /* #e8d5c8 */
+  --color-backup-text: 169 139 118;  /* #A98B76 */
+}
+
+/* テーマ③ ラベンダー */
+[data-theme="lavender"] {
+  --color-main:        40 28 89;     /* #281C59 */
+  --color-backup-bg:   197 189 224;  /* #c5bde0 */
+  --color-backup-text: 40 28 89;     /* #281C59 */
+}
+
+/* テーマ④ ミントベージュ */
+[data-theme="mint"] {
+  --color-main:        126 172 181;  /* #7EACB5 */
+  --color-backup-bg:   200 236 229;  /* #c8ece5 */
+  --color-backup-text: 126 172 181;  /* #7EACB5 */
+}
+
 /* スクロールバーを非表示にするユーティリティ */
 .scrollbar-none {
   -ms-overflow-style: none;
@@ -13,5 +43,5 @@
 
 /* ベーススタイル */
 body {
-  font-family: 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  font-family: 'Zen Maru Gothic', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
 }
