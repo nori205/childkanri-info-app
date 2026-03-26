@@ -2,7 +2,8 @@
 // 全子供の予定まとめビュー
 // ===========================
 
-import { CalendarDays, Stethoscope, FileText, ShoppingBag, PenLine, Banknote, Circle } from 'lucide-react'
+import { useState } from 'react'
+import { CalendarDays, Stethoscope, FileText, ShoppingBag, PenLine, Banknote, Circle, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Child, Task, Appointment } from '../types'
 
 interface ScheduleViewProps {
@@ -13,11 +14,18 @@ interface ScheduleViewProps {
 
 // 子供ごとの色（インデックス順）
 const CHILD_COLORS = [
-  { bg: 'bg-rose-100', text: 'text-rose-700', dot: 'bg-rose-400' },
-  { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-400' },
-  { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-400' },
-  { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-400' },
+  { bg: 'bg-rose-100', text: 'text-rose-700' },
+  { bg: 'bg-blue-100', text: 'text-blue-700' },
+  { bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  { bg: 'bg-purple-100', text: 'text-purple-700' },
 ]
+
+// N日後の日付文字列（YYYY-MM-DD）
+const daysLater = (n: number): string => {
+  const d = new Date()
+  d.setDate(d.getDate() + n)
+  return d.toISOString().slice(0, 10)
+}
 
 // 日付を「3月27日（木）今日」形式に変換
 const formatDateLabel = (dateStr: string, todayStr: string): string => {
@@ -29,13 +37,12 @@ const formatDateLabel = (dateStr: string, todayStr: string): string => {
 
 // タスクカテゴリのアイコン
 const TaskIcon = ({ category }: { category: string }) => {
-  const cls = 'flex-shrink-0'
   switch (category) {
-    case '書類提出': return <FileText size={13} className={cls} />
-    case '持ち物チェック': return <ShoppingBag size={13} className={cls} />
-    case '記入・署名': return <PenLine size={13} className={cls} />
-    case '支払い・入金': return <Banknote size={13} className={cls} />
-    default: return <Circle size={13} className={cls} />
+    case '書類提出': return <FileText size={13} className="flex-shrink-0" />
+    case '持ち物チェック': return <ShoppingBag size={13} className="flex-shrink-0" />
+    case '記入・署名': return <PenLine size={13} className="flex-shrink-0" />
+    case '支払い・入金': return <Banknote size={13} className="flex-shrink-0" />
+    default: return <Circle size={13} className="flex-shrink-0" />
   }
 }
 
@@ -45,7 +52,10 @@ type ScheduleEvent =
   | { type: 'task'; date: string; childId: string; label: string; category: string }
 
 const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
+  const [showAll, setShowAll] = useState(false)
+
   const todayStr = new Date().toISOString().slice(0, 10)
+  const twoWeeksStr = daysLater(14)
 
   // 今日以降の病院予約
   const futureAppointments: ScheduleEvent[] = appointments
@@ -74,23 +84,33 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
 
   if (allEvents.length === 0) return null
 
+  // 2週間以内と2週間より後に分ける
+  const withinTwoWeeks = allEvents.filter((ev) => ev.date <= twoWeeksStr)
+  const beyond = allEvents.filter((ev) => ev.date > twoWeeksStr)
+
+  // 表示するイベント（showAll=trueなら全件）
+  const visibleEvents = showAll ? allEvents : withinTwoWeeks
+
   // 日付ごとにグループ化
   const grouped: Map<string, ScheduleEvent[]> = new Map()
-  for (const ev of allEvents) {
+  for (const ev of visibleEvents) {
     const list = grouped.get(ev.date) ?? []
     list.push(ev)
     grouped.set(ev.date, list)
   }
 
-  // 子供IDからインデックスを取得
+  // 子供IDからインデックス・名前を取得
   const childIndexMap = new Map(children.map((c, i) => [c.id, i]))
   const childNameMap = new Map(children.map((c) => [c.id, c.name]))
 
   return (
     <section className="mb-2">
-      <div className="flex items-center gap-2 mb-3">
-        <CalendarDays size={17} className="text-rose-brown" />
-        <h2 className="text-base font-semibold text-rose-brown">今後の予定</h2>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <CalendarDays size={17} className="text-rose-brown" />
+          <h2 className="text-base font-semibold text-rose-brown">今後の予定</h2>
+        </div>
+        <span className="text-xs text-rose-brown/60">{formatDateLabel(todayStr, todayStr)}</span>
       </div>
 
       <div className="space-y-3">
@@ -110,12 +130,9 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
 
                 return (
                   <div key={i} className="flex items-center gap-2.5 px-3 py-2.5">
-                    {/* 子供名バッジ */}
                     <span className={`flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${color.bg} ${color.text}`}>
                       {childName}
                     </span>
-
-                    {/* アイコン＋内容 */}
                     <span className="text-rose-brown/50">
                       {ev.type === 'appointment'
                         ? <Stethoscope size={13} className="flex-shrink-0" />
@@ -128,6 +145,26 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
             </div>
           </div>
         ))}
+
+        {/* 2週間以降の展開ボタン */}
+        {beyond.length > 0 && (
+          <button
+            onClick={() => setShowAll((prev) => !prev)}
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-pink-muted/60 text-sm text-rose-brown hover:bg-pink-soft/30 transition-colors"
+          >
+            {showAll ? (
+              <>
+                <ChevronUp size={15} />
+                2週間以降を閉じる
+              </>
+            ) : (
+              <>
+                <ChevronDown size={15} />
+                2週間以降の予定を見る（{beyond.length}件）
+              </>
+            )}
+          </button>
+        )}
       </div>
     </section>
   )
