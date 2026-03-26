@@ -20,11 +20,11 @@ const CHILD_COLORS = [
   { bg: 'bg-purple-100', text: 'text-purple-700' },
 ]
 
-// N日後の日付文字列（YYYY-MM-DD）
+// N日後の日付文字列（YYYY-MM-DD、ローカル時刻）
 const daysLater = (n: number): string => {
   const d = new Date()
   d.setDate(d.getDate() + n)
-  return d.toISOString().slice(0, 10)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 // 日付を「3月27日（木）今日」形式に変換
@@ -54,7 +54,8 @@ type ScheduleEvent =
 const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
   const [showAll, setShowAll] = useState(false)
 
-  const todayStr = new Date().toISOString().slice(0, 10)
+  const now = new Date()
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
   const twoWeeksStr = daysLater(14)
 
   // 今日以降の病院予約
