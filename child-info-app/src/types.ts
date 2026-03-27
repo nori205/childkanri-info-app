@@ -114,6 +114,7 @@ export interface Doctor {
   specialty: string       // 診療科
   hospitalName: string    // 病院名（必須）
   phone: string           // 電話番号
+  patientCardNumber: string // 診察券番号
   memo: string
   createdAt: string
 }

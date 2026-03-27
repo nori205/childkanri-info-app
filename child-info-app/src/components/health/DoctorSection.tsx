@@ -22,6 +22,7 @@ const emptyForm = () => ({
   specialty: '小児科',
   hospitalName: '',
   phone: '',
+  patientCardNumber: '',
   memo: '',
 })
 
@@ -88,6 +89,12 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
                     <a href={`tel:${doc.phone}`} className="hover:underline">
                       {doc.phone}
                     </a>
+                  </div>
+                )}
+                {/* 診察券番号 */}
+                {doc.patientCardNumber && (
+                  <div className="text-xs text-rose-brown/80 mb-0.5">
+                    診察券番号：{doc.patientCardNumber}
                   </div>
                 )}
                 {/* メモ */}
@@ -160,6 +167,16 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
             value={form.phone}
             onChange={handleChange}
             placeholder="電話番号（任意）"
+            className="w-full border border-pink-soft rounded-lg px-3 py-2 bg-cream text-dark-brown text-sm placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
+          />
+
+          {/* 診察券番号 */}
+          <input
+            type="text"
+            name="patientCardNumber"
+            value={form.patientCardNumber}
+            onChange={handleChange}
+            placeholder="診察券番号（任意）"
             className="w-full border border-pink-soft rounded-lg px-3 py-2 bg-cream text-dark-brown text-sm placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
           />
 
