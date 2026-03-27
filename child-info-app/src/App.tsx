@@ -258,8 +258,32 @@ const App = () => {
       {/* メインコンテンツ */}
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
-        {/* ① バックアップ・復元（一番上） */}
-        <BackupSection />
+        {/* ① 子供タブ（最上部・名前切り替え＋追加ボタン） */}
+        <section>
+          {children.length === 0 ? (
+            <EmptyState onAdd={() => setIsChildModalOpen(true)} />
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-rose-brown">子供の情報</h2>
+                <button
+                  onClick={handleAddChildClick}
+                  className="flex items-center gap-1 text-sm bg-pink-muted text-cream px-3 py-1.5 rounded-full shadow hover:opacity-90 transition-opacity"
+                >
+                  ＋ 子供を追加
+                </button>
+              </div>
+              <ChildTabs
+                children={children}
+                activeChildId={activeChildId}
+                onTabChange={setActiveChildId}
+                onAddChild={handleAddChildClick}
+                onDeleteChild={deleteChild}
+                showCard={false}
+              />
+            </div>
+          )}
+        </section>
 
         {/* ② 全子供の予定まとめ（2週間） */}
         {children.length > 0 && (
@@ -270,33 +294,8 @@ const App = () => {
           />
         )}
 
-        {/* ③ 子供タブ（名前切り替えのみ・カード非表示） */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-base font-semibold text-rose-brown">子供の情報</h2>
-            {children.length > 0 && (
-              <button
-                onClick={handleAddChildClick}
-                className="flex items-center gap-1 text-sm bg-pink-muted text-cream px-3 py-1.5 rounded-full shadow hover:opacity-90 transition-opacity"
-              >
-                ＋ 子供を追加
-              </button>
-            )}
-          </div>
-
-          {children.length === 0 ? (
-            <EmptyState onAdd={() => setIsChildModalOpen(true)} />
-          ) : (
-            <ChildTabs
-              children={children}
-              activeChildId={activeChildId}
-              onTabChange={setActiveChildId}
-              onAddChild={handleAddChildClick}
-              onDeleteChild={deleteChild}
-              showCard={false}
-            />
-          )}
-        </section>
+        {/* ③ バックアップ・復元 */}
+        <BackupSection />
 
         {/* 子供が選択されているときのみ表示するセクション群 */}
         {activeChild && (

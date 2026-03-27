@@ -114,7 +114,7 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
         <div className="flex items-center gap-2">
           <CalendarDays size={17} className="text-rose-brown" />
           <h2 className="text-base font-semibold text-rose-brown">今後の予定</h2>
-          <span className="text-xs text-rose-brown/60 bg-pink-soft/50 px-1.5 py-0.5 rounded-full">{allEvents.length}件</span>
+          <span className="text-sm font-bold text-rose-brown bg-pink-soft/70 px-2 py-0.5 rounded-full">{allEvents.length}件</span>
         </div>
         <div className="flex items-center gap-1.5 text-xs text-rose-brown/60">
           <span className="text-xs text-rose-brown/60">{formatDateLabel(todayStr, todayStr)}</span>
