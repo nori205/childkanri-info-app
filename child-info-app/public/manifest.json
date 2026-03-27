@@ -1,0 +1,17 @@
+{
+  "name": "こどめも",
+  "short_name": "こどめも",
+  "description": "子供の情報をまとめて管理するアプリ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdf6f0",
+  "theme_color": "#c97b6a",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
