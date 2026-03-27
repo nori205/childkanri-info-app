@@ -2,6 +2,7 @@
 // タスクリストコンポーネント
 // ===========================
 
+import { useState, useRef } from 'react'
 import {
   FileText,
   ShoppingBag,
@@ -12,14 +13,23 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Plus,
 } from 'lucide-react'
-import type { Task, TaskCategory } from '../types'
+import type { Task, TaskCategory, SubTask } from '../types'
 import { DUE_WARN_DAYS } from '../constants'
 
 interface TaskListProps {
   tasks: Task[]
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  // サブタスク関連 props
+  subTasks: SubTask[]
+  onAddSubTask: (taskId: string, title: string) => void
+  onToggleSubTask: (id: string) => void
+  onDeleteSubTask: (id: string) => void
+  getSubTasksByTaskId: (taskId: string) => SubTask[]
 }
 
 // 種類別アイコンコンポーネントを返す
@@ -99,12 +109,70 @@ const TaskItem = ({
   task,
   onToggle,
   onDelete,
+  taskSubTasks,
+  onAddSubTask,
+  onToggleSubTask,
+  onDeleteSubTask,
 }: {
   task: Task
   onToggle: (id: string) => void
   onDelete: (id: string) => void
+  taskSubTasks: SubTask[]
+  onAddSubTask: (taskId: string, title: string) => void
+  onToggleSubTask: (id: string) => void
+  onDeleteSubTask: (id: string) => void
 }) => {
   const status = getDueStatus(task.dueDate)
+
+  // サブタスクエリアの展開状態（ローカル管理）
+  const [isExpanded, setIsExpanded] = useState(false)
+  // インライン入力欄の表示状態
+  const [isAddingSubTask, setIsAddingSubTask] = useState(false)
+  // サブタスク入力値
+  const [subTaskInput, setSubTaskInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // サブタスクの完了数・全件数
+  const subTotal = taskSubTasks.length
+  const subDone = taskSubTasks.filter((st) => st.completed).length
+  // 全サブタスクが完了しているか
+  const allSubDone = subTotal > 0 && subDone === subTotal
+
+  // 展開ボタン押下
+  const handleToggleExpand = () => {
+    setIsExpanded((prev) => !prev)
+    // 折りたたむときはインライン入力も閉じる
+    if (isExpanded) {
+      setIsAddingSubTask(false)
+      setSubTaskInput('')
+    }
+  }
+
+  // 「＋ サブタスクを追加」ボタン押下
+  const handleShowAddInput = () => {
+    setIsAddingSubTask(true)
+    // 少し待ってからフォーカスを当てる
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  // サブタスク保存処理
+  const handleSaveSubTask = () => {
+    if (subTaskInput.trim()) {
+      onAddSubTask(task.id, subTaskInput)
+      setSubTaskInput('')
+    }
+    setIsAddingSubTask(false)
+  }
+
+  // Enterキーで保存、Escapeでキャンセル
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSaveSubTask()
+    } else if (e.key === 'Escape') {
+      setIsAddingSubTask(false)
+      setSubTaskInput('')
+    }
+  }
 
   // 期限切れ・今日期限は枠を赤く、3日以内はオレンジに
   const borderClass =
@@ -117,69 +185,183 @@ const TaskItem = ({
       : 'border-pink-soft bg-white'
 
   return (
-    <div className={`flex items-start gap-3 p-3 rounded-xl border ${borderClass} transition-all`}>
-      {/* チェックボタン */}
-      <button
-        onClick={() => onToggle(task.id)}
-        className="mt-0.5 flex-shrink-0 text-pink-muted hover:opacity-70 transition-opacity"
-        aria-label={task.completed ? '未完了に戻す' : '完了にする'}
-      >
-        <CheckCircle2
-          size={22}
-          className={task.completed ? 'text-pink-muted/50' : 'text-pink-muted'}
-          fill={task.completed ? 'currentColor' : 'none'}
-        />
-      </button>
+    <div className={`rounded-xl border ${borderClass} transition-all`}>
+      {/* メインタスク行 */}
+      <div className="flex items-start gap-3 p-3">
+        {/* チェックボタン */}
+        <button
+          onClick={() => onToggle(task.id)}
+          className="mt-0.5 flex-shrink-0 text-pink-muted hover:opacity-70 transition-opacity"
+          aria-label={task.completed ? '未完了に戻す' : '完了にする'}
+        >
+          <CheckCircle2
+            size={22}
+            className={task.completed ? 'text-pink-muted/50' : 'text-pink-muted'}
+            fill={task.completed ? 'currentColor' : 'none'}
+          />
+        </button>
 
-      {/* タスク情報 */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 mb-0.5">
-          <span className={`text-rose-brown/70 ${task.completed ? 'opacity-50' : ''}`}>
-            <CategoryIcon category={task.category} />
+        {/* タスク情報 */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <span className={`text-rose-brown/70 ${task.completed ? 'opacity-50' : ''}`}>
+              <CategoryIcon category={task.category} />
+            </span>
+            <span
+              className={`text-sm font-medium text-dark-brown ${
+                task.completed ? 'line-through text-dark-brown/40' : ''
+              }`}
+            >
+              {task.title}
+            </span>
+            {/* サブタスク件数バッジ（1件以上のとき表示） */}
+            {subTotal > 0 && (
+              <span className="text-xs text-rose-brown/60 ml-0.5">
+                {subDone}/{subTotal}
+              </span>
+            )}
+            {/* 全完了バッジ */}
+            {allSubDone && (
+              <span className="bg-emerald-100 text-emerald-700 text-xs px-1.5 py-0.5 rounded-md">
+                全完了
+              </span>
+            )}
+          </div>
+
+          {/* 種類ラベル */}
+          <span className="inline-block text-xs text-rose-brown/60 bg-cream px-1.5 py-0.5 rounded-md mb-1">
+            {task.category}
           </span>
-          <span
-            className={`text-sm font-medium text-dark-brown ${
-              task.completed ? 'line-through text-dark-brown/40' : ''
-            }`}
-          >
-            {task.title}
-          </span>
+
+          {/* 金額 */}
+          {task.amount !== null && (
+            <p className="text-xs text-dark-brown/70 mb-0.5">
+              ¥{task.amount.toLocaleString()}
+            </p>
+          )}
+
+          {/* 期限バッジ */}
+          {!task.completed && dueBadge(task.dueDate, status)}
+
+          {/* メモ */}
+          {task.memo && (
+            <p className="text-xs text-dark-brown/60 mt-1 line-clamp-2">{task.memo}</p>
+          )}
         </div>
 
-        {/* 種類ラベル */}
-        <span className="inline-block text-xs text-rose-brown/60 bg-cream px-1.5 py-0.5 rounded-md mb-1">
-          {task.category}
-        </span>
-
-        {/* 金額 */}
-        {task.amount !== null && (
-          <p className="text-xs text-dark-brown/70 mb-0.5">
-            ¥{task.amount.toLocaleString()}
-          </p>
-        )}
-
-        {/* 期限バッジ */}
-        {!task.completed && dueBadge(task.dueDate, status)}
-
-        {/* メモ */}
-        {task.memo && (
-          <p className="text-xs text-dark-brown/60 mt-1 line-clamp-2">{task.memo}</p>
-        )}
+        {/* 右端ボタン群 */}
+        <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+          {/* 展開/折りたたみトグルボタン */}
+          <button
+            onClick={handleToggleExpand}
+            className="text-rose-brown/40 hover:text-rose-brown transition-colors"
+            aria-label={isExpanded ? 'サブタスクを折りたたむ' : 'サブタスクを展開する'}
+          >
+            {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+          </button>
+          {/* 削除ボタン */}
+          <button
+            onClick={() => onDelete(task.id)}
+            className="text-rose-brown/40 hover:text-rose-brown transition-colors"
+            aria-label="削除"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
       </div>
 
-      {/* 削除ボタン */}
-      <button
-        onClick={() => onDelete(task.id)}
-        className="flex-shrink-0 text-rose-brown/40 hover:text-rose-brown transition-colors mt-0.5"
-        aria-label="削除"
-      >
-        <Trash2 size={15} />
-      </button>
+      {/* サブタスクエリア（展開時のみ表示） */}
+      {isExpanded && (
+        <div className="mx-3 mb-3 bg-cream/60 rounded-lg p-2">
+          {/* サブタスク一覧 */}
+          {taskSubTasks.length > 0 && (
+            <ul className="space-y-1 mb-2">
+              {taskSubTasks.map((st) => (
+                <li key={st.id} className="flex items-center gap-2">
+                  {/* チェックボックス */}
+                  <button
+                    onClick={() => onToggleSubTask(st.id)}
+                    className="flex-shrink-0 text-pink-muted hover:opacity-70 transition-opacity"
+                    aria-label={st.completed ? '未完了に戻す' : '完了にする'}
+                  >
+                    <CheckCircle2
+                      size={16}
+                      className={st.completed ? 'text-pink-muted/50' : 'text-pink-muted'}
+                      fill={st.completed ? 'currentColor' : 'none'}
+                    />
+                  </button>
+                  {/* サブタスクタイトル */}
+                  <span
+                    className={`flex-1 text-xs text-dark-brown ${
+                      st.completed ? 'line-through text-dark-brown/40' : ''
+                    }`}
+                  >
+                    {st.title}
+                  </span>
+                  {/* 削除ボタン */}
+                  <button
+                    onClick={() => onDeleteSubTask(st.id)}
+                    className="flex-shrink-0 text-rose-brown/30 hover:text-rose-brown transition-colors"
+                    aria-label="サブタスクを削除"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* インライン入力欄（表示中） */}
+          {isAddingSubTask ? (
+            <div className="flex items-center gap-1.5">
+              <input
+                ref={inputRef}
+                type="text"
+                value={subTaskInput}
+                onChange={(e) => setSubTaskInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="サブタスク名を入力"
+                className="flex-1 text-xs bg-white border border-pink-soft rounded-md px-2 py-1 text-dark-brown placeholder-rose-brown/40 outline-none focus:border-pink-muted"
+              />
+              <button
+                onClick={handleSaveSubTask}
+                className="text-xs bg-pink-muted text-cream px-2 py-1 rounded-md hover:opacity-90 transition-opacity"
+              >
+                追加
+              </button>
+              <button
+                onClick={() => { setIsAddingSubTask(false); setSubTaskInput('') }}
+                className="text-xs text-rose-brown/50 hover:text-rose-brown transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            /* 「＋ サブタスクを追加」ボタン */
+            <button
+              onClick={handleShowAddInput}
+              className="flex items-center gap-1 text-xs text-rose-brown/60 hover:text-rose-brown transition-colors"
+            >
+              <Plus size={11} />
+              サブタスクを追加
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
-const TaskList = ({ tasks, onToggle, onDelete }: TaskListProps) => {
+const TaskList = ({
+  tasks,
+  onToggle,
+  onDelete,
+  subTasks,
+  onAddSubTask,
+  onToggleSubTask,
+  onDeleteSubTask,
+  getSubTasksByTaskId,
+}: TaskListProps) => {
   const incomplete = tasks
     .filter((t) => !t.completed)
     .sort((a, b) => {
@@ -199,11 +381,24 @@ const TaskList = ({ tasks, onToggle, onDelete }: TaskListProps) => {
     )
   }
 
+  // subTasks は prop として受け取っているが、getSubTasksByTaskId で個別取得するため
+  // lint 警告回避のためダミー参照
+  void subTasks
+
   return (
     <div className="space-y-2">
       {/* 未完了タスク */}
       {incomplete.map((task) => (
-        <TaskItem key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+        <TaskItem
+          key={task.id}
+          task={task}
+          onToggle={onToggle}
+          onDelete={onDelete}
+          taskSubTasks={getSubTasksByTaskId(task.id)}
+          onAddSubTask={onAddSubTask}
+          onToggleSubTask={onToggleSubTask}
+          onDeleteSubTask={onDeleteSubTask}
+        />
       ))}
 
       {/* 完了済みタスク */}
@@ -211,7 +406,16 @@ const TaskList = ({ tasks, onToggle, onDelete }: TaskListProps) => {
         <div className="mt-4">
           <p className="text-xs text-rose-brown/50 mb-2 px-1">完了済み</p>
           {completed.map((task) => (
-            <TaskItem key={task.id} task={task} onToggle={onToggle} onDelete={onDelete} />
+            <TaskItem
+              key={task.id}
+              task={task}
+              onToggle={onToggle}
+              onDelete={onDelete}
+              taskSubTasks={getSubTasksByTaskId(task.id)}
+              onAddSubTask={onAddSubTask}
+              onToggleSubTask={onToggleSubTask}
+              onDeleteSubTask={onDeleteSubTask}
+            />
           ))}
         </div>
       )}

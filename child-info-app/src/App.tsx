@@ -33,6 +33,7 @@ import type {
   Child,
   FamilyInfo as FamilyInfoType,
   Task,
+  SubTask,
   Doctor,
   Allergy,
   Illness,
@@ -84,6 +85,7 @@ const loadAppData = (): AppData => {
       children: data.children ?? [],
       familyInfo: migrateFamilyInfo(data.familyInfo as unknown as Record<string, unknown>),
       tasks: data.tasks ?? [],
+      subTasks: data.subTasks ?? [],
       doctors: data.doctors ?? [],
       allergies: data.allergies ?? [],
       illnesses: data.illnesses ?? [],
@@ -101,6 +103,7 @@ const loadAppData = (): AppData => {
       children: [],
       familyInfo: DEFAULT_FAMILY_INFO,
       tasks: [],
+      subTasks: [],
       doctors: [],
       allergies: [],
       illnesses: [],
@@ -153,9 +156,10 @@ const App = () => {
     saveAppData({ ...current, familyInfo })
   }, [])
 
-  const handleSaveTasks = useCallback((tasks: Task[]) => {
+  // タスクとサブタスクを同時に保存する
+  const handleSaveTasksAndSubs = useCallback((tasks: Task[], subTasks: SubTask[]) => {
     const current = loadAppData()
-    saveAppData({ ...current, tasks })
+    saveAppData({ ...current, tasks, subTasks })
   }, [])
 
   const handleSaveHealth = useCallback(
@@ -193,9 +197,21 @@ const App = () => {
     handleSaveFamilyInfo,
   )
 
-  const { tasks, addTask, toggleTask, deleteTask, getTasksByChildId } = useTasks(
+  const {
+    tasks,
+    addTask,
+    toggleTask,
+    deleteTask,
+    getTasksByChildId,
+    subTasks,
+    addSubTask,
+    toggleSubTask,
+    deleteSubTask,
+    getSubTasksByTaskId,
+  } = useTasks(
     initialData.tasks,
-    handleSaveTasks,
+    handleSaveTasksAndSubs,
+    initialData.subTasks,
   )
 
   const {
@@ -330,6 +346,11 @@ const App = () => {
                   tasks={activeTasks}
                   onToggle={toggleTask}
                   onDelete={deleteTask}
+                  subTasks={subTasks}
+                  onAddSubTask={addSubTask}
+                  onToggleSubTask={toggleSubTask}
+                  onDeleteSubTask={deleteSubTask}
+                  getSubTasksByTaskId={getSubTasksByTaskId}
                 />
               )}
             </section>

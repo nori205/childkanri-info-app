@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState, useCallback } from 'react'
-import type { Task, TaskFormValues } from '../types'
+import type { Task, TaskFormValues, SubTask } from '../types'
 
 interface UseTasksReturn {
   tasks: Task[]
@@ -11,6 +11,12 @@ interface UseTasksReturn {
   toggleTask: (id: string) => void
   deleteTask: (id: string) => void
   getTasksByChildId: (childId: string) => Task[]
+  // サブタスク操作
+  subTasks: SubTask[]
+  addSubTask: (taskId: string, title: string) => void
+  toggleSubTask: (id: string) => void
+  deleteSubTask: (id: string) => void
+  getSubTasksByTaskId: (taskId: string) => SubTask[]
 }
 
 // UUIDを簡易生成
@@ -19,9 +25,11 @@ const generateId = (): string =>
 
 export const useTasks = (
   initialTasks: Task[],
-  onSave: (tasks: Task[]) => void,
+  onSave: (tasks: Task[], subTasks: SubTask[]) => void,
+  initialSubTasks: SubTask[] = [],
 ): UseTasksReturn => {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [subTasks, setSubTasks] = useState<SubTask[]>(initialSubTasks)
 
   // タスクを追加する
   const addTask = useCallback(
@@ -45,9 +53,9 @@ export const useTasks = (
       }
       const updated = [...tasks, newTask]
       setTasks(updated)
-      onSave(updated)
+      onSave(updated, subTasks)
     },
-    [tasks, onSave],
+    [tasks, subTasks, onSave],
   )
 
   // 完了・未完了を切り替える
@@ -59,19 +67,21 @@ export const useTasks = (
           : task,
       )
       setTasks(updated)
-      onSave(updated)
+      onSave(updated, subTasks)
     },
-    [tasks, onSave],
+    [tasks, subTasks, onSave],
   )
 
-  // タスクを削除する
+  // タスクを削除する（紐付くサブタスクも一緒に削除）
   const deleteTask = useCallback(
     (id: string) => {
-      const updated = tasks.filter((task) => task.id !== id)
-      setTasks(updated)
-      onSave(updated)
+      const updatedTasks = tasks.filter((task) => task.id !== id)
+      const updatedSubTasks = subTasks.filter((st) => st.taskId !== id)
+      setTasks(updatedTasks)
+      setSubTasks(updatedSubTasks)
+      onSave(updatedTasks, updatedSubTasks)
     },
-    [tasks, onSave],
+    [tasks, subTasks, onSave],
   )
 
   // 子供IDでタスクを絞り込む
@@ -80,5 +90,63 @@ export const useTasks = (
     [tasks],
   )
 
-  return { tasks, addTask, toggleTask, deleteTask, getTasksByChildId }
+  // サブタスクを追加する
+  const addSubTask = useCallback(
+    (taskId: string, title: string) => {
+      const trimmed = title.trim()
+      if (!trimmed) return
+      const newSubTask: SubTask = {
+        id: generateId(),
+        taskId,
+        title: trimmed,
+        completed: false,
+        createdAt: new Date().toISOString(),
+      }
+      const updated = [...subTasks, newSubTask]
+      setSubTasks(updated)
+      onSave(tasks, updated)
+    },
+    [subTasks, tasks, onSave],
+  )
+
+  // サブタスクの完了・未完了を切り替える
+  const toggleSubTask = useCallback(
+    (id: string) => {
+      const updated = subTasks.map((st) =>
+        st.id === id ? { ...st, completed: !st.completed } : st,
+      )
+      setSubTasks(updated)
+      onSave(tasks, updated)
+    },
+    [subTasks, tasks, onSave],
+  )
+
+  // サブタスクを削除する
+  const deleteSubTask = useCallback(
+    (id: string) => {
+      const updated = subTasks.filter((st) => st.id !== id)
+      setSubTasks(updated)
+      onSave(tasks, updated)
+    },
+    [subTasks, tasks, onSave],
+  )
+
+  // 親タスクIDでサブタスクを絞り込む
+  const getSubTasksByTaskId = useCallback(
+    (taskId: string): SubTask[] => subTasks.filter((st) => st.taskId === taskId),
+    [subTasks],
+  )
+
+  return {
+    tasks,
+    addTask,
+    toggleTask,
+    deleteTask,
+    getTasksByChildId,
+    subTasks,
+    addSubTask,
+    toggleSubTask,
+    deleteSubTask,
+    getSubTasksByTaskId,
+  }
 }

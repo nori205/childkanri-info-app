@@ -69,6 +69,18 @@ export interface FamilyInfo {
 }
 
 // ===========================
+// サブタスク
+// ===========================
+
+export interface SubTask {
+  id: string
+  taskId: string    // 親タスクのID
+  title: string     // サブタスク名（必須）
+  completed: boolean
+  createdAt: string
+}
+
+// ===========================
 // ステップ②：タスク管理
 // ===========================
 
@@ -248,4 +260,5 @@ export interface AppData {
   welfareProviders: WelfareProvider[]    // 福祉サービス事業者
   welfareConsultants: WelfareConsultant[] // 相談支援専門員
   diagnosisInfos: DiagnosisInfo[]        // 診断名・手帳
+  subTasks: SubTask[]                    // サブタスク
 }
