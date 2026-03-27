@@ -71,8 +71,9 @@ const BackupSection = () => {
   return (
     <div className="bg-white border border-pink-soft/60 rounded-2xl px-4 py-3">
       <p className="text-xs font-semibold text-dark-brown mb-0.5">データのバックアップ・復元</p>
+      <p className="text-xs text-rose-brown/70 mb-1">💾 データはこの端末にのみ保存されます。機種変更や故障に備えて、こまめにバックアップしましょう</p>
       {showReminder && (
-        <p className="text-xs text-amber-600 mb-2">💾 しばらくバックアップしていません。定期的に保存しましょう</p>
+        <p className="text-xs text-amber-600 mb-1">⚠️ しばらくバックアップしていません。今すぐ保存をおすすめします</p>
       )}
       <div className="flex gap-2 mt-2">
         <button
