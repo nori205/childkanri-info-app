@@ -457,6 +457,8 @@ const App = () => {
           editInitialValues={{
             name: activeChild.name,
             birthDate: activeChild.birthDate,
+            birthHeight: activeChild.birthHeight ?? '',
+            birthWeight: activeChild.birthWeight ?? '',
             grade: activeChild.grade,
             schoolName: activeChild.schoolName,
             bloodType: activeChild.bloodType,

@@ -28,11 +28,13 @@ export interface Child {
   id: string
   name: string
   birthDate: string      // ISO形式 YYYY-MM-DD
+  birthHeight: string    // 出生時身長 cm（任意）
+  birthWeight: string    // 出生時体重 g（任意）
   grade: GradeType
   schoolName: string
   bloodType: BloodType
-  height: string         // 身長 cm（任意）
-  weight: string         // 体重 kg（任意）
+  height: string         // 現在の身長 cm（任意）
+  weight: string         // 現在の体重 kg（任意）
   createdAt: string      // ISO形式
   updatedAt: string      // ISO形式
 }
@@ -41,6 +43,8 @@ export interface Child {
 export interface ChildFormValues {
   name: string
   birthDate: string
+  birthHeight: string
+  birthWeight: string
   grade: GradeType
   schoolName: string
   bloodType: BloodType

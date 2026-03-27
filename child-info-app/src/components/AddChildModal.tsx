@@ -18,6 +18,8 @@ interface AddChildModalProps {
 const defaultValues: ChildFormValues = {
   name: '',
   birthDate: '',
+  birthHeight: '',
+  birthWeight: '',
   grade: '未就学',
   schoolName: '',
   bloodType: '不明',
@@ -116,6 +118,32 @@ const AddChildModal = ({ onClose, onAdd, editInitialValues, onEdit }: AddChildMo
             {errors.birthDate && (
               <p className="text-red-400 text-xs mt-1">{errors.birthDate}</p>
             )}
+          </div>
+
+          {/* 出生時身長・体重 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-dark-brown mb-1">出生時身長（cm）</label>
+              <input
+                type="number"
+                name="birthHeight"
+                value={values.birthHeight}
+                onChange={handleChange}
+                placeholder="例：50"
+                className="w-full border border-pink-soft rounded-xl px-3 py-2 bg-white text-dark-brown placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-brown mb-1">出生時体重（g）</label>
+              <input
+                type="number"
+                name="birthWeight"
+                value={values.birthWeight}
+                onChange={handleChange}
+                placeholder="例：3200"
+                className="w-full border border-pink-soft rounded-xl px-3 py-2 bg-white text-dark-brown placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
+              />
+            </div>
           </div>
 
           {/* 学年 */}

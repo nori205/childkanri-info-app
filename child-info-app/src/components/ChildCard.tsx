@@ -2,7 +2,7 @@
 // 子供情報カードコンポーネント
 // ===========================
 
-import { Cake, School, Droplets, GraduationCap, Ruler, Weight } from 'lucide-react'
+import { Cake, School, Droplets, GraduationCap, Ruler, Weight, Baby } from 'lucide-react'
 import type { Child } from '../types'
 
 interface ChildCardProps {
@@ -48,6 +48,30 @@ const ChildCard = ({ child }: ChildCardProps) => {
             </p>
           </div>
         </div>
+
+        {/* 出生時身長・体重 */}
+        {(child.birthHeight || child.birthWeight) && (
+          <div className="flex gap-4">
+            {child.birthHeight && (
+              <div className="flex items-center gap-3">
+                <Baby size={18} className="text-rose-brown flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-rose-brown">出生時身長</p>
+                  <p className="text-sm font-medium text-dark-brown">{child.birthHeight} cm</p>
+                </div>
+              </div>
+            )}
+            {child.birthWeight && (
+              <div className="flex items-center gap-3">
+                {!child.birthHeight && <Baby size={18} className="text-rose-brown flex-shrink-0" />}
+                <div>
+                  <p className="text-xs text-rose-brown">出生時体重</p>
+                  <p className="text-sm font-medium text-dark-brown">{child.birthWeight} g</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 学年 */}
         <div className="flex items-center gap-3">
