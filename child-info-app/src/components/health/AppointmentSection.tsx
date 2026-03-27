@@ -10,6 +10,7 @@ interface AppointmentSectionProps {
   appointments: Appointment[]
   onAdd: (values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   onDelete: (id: string) => void
+  locationSuggestions?: string[]
 }
 
 // YYYY-MM-DD を M/D 形式に変換（例：2026-04-10 → 4/10）
@@ -78,7 +79,7 @@ const AppointmentItem = ({
 
 // ── メインコンポーネント ──────────────
 
-const AppointmentSection = ({ appointments, onAdd, onDelete }: AppointmentSectionProps) => {
+const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions = [] }: AppointmentSectionProps) => {
   // アコーディオンの開閉
   const [isOpen, setIsOpen] = useState(true)
   // 全期間表示モード
@@ -264,8 +265,14 @@ const AppointmentSection = ({ appointments, onAdd, onDelete }: AppointmentSectio
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="例：小児科、療育、皮膚科、歯科検診"
                   required
+                  list="appt-content-suggestions"
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown placeholder:text-dark-brown/40"
                 />
+                <datalist id="appt-content-suggestions">
+                  {appointments.map((a) => a.content).filter(Boolean).filter((v, i, arr) => arr.indexOf(v) === i).map((v) => (
+                    <option key={v} value={v} />
+                  ))}
+                </datalist>
               </div>
 
               {/* 病院名・場所（任意） */}
@@ -276,8 +283,17 @@ const AppointmentSection = ({ appointments, onAdd, onDelete }: AppointmentSectio
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="例：〇〇クリニック、△△センター"
+                  list="appt-location-suggestions"
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown placeholder:text-dark-brown/40"
                 />
+                <datalist id="appt-location-suggestions">
+                  {[
+                    ...locationSuggestions,
+                    ...appointments.map((a) => a.location).filter(Boolean),
+                  ].filter((v, i, arr) => arr.indexOf(v) === i).map((v) => (
+                    <option key={v} value={v} />
+                  ))}
+                </datalist>
               </div>
 
               {/* メモ（任意） */}

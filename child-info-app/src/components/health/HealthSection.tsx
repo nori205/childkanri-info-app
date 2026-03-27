@@ -75,6 +75,7 @@ const HealthSection = ({
               appointments={health.appointments}
               onAdd={onAddAppointment}
               onDelete={onDeleteAppointment}
+              locationSuggestions={health.doctors.map((d) => d.hospitalName).filter(Boolean)}
             />
 
             {/* かかりつけ医 */}

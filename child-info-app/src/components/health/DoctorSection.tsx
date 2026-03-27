@@ -142,8 +142,14 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
               value={form.hospitalName}
               onChange={handleChange}
               placeholder="病院名 *"
+              list="doctor-hospital-suggestions"
               className="w-full border border-pink-soft rounded-lg px-3 py-2 bg-cream text-dark-brown text-sm placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
             />
+            <datalist id="doctor-hospital-suggestions">
+              {doctors.map((d) => d.hospitalName).filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).map((v) => (
+                <option key={v} value={v} />
+              ))}
+            </datalist>
             {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
           </div>
 

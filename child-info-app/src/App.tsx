@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState, useCallback } from 'react'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Pencil } from 'lucide-react'
 import Header from './components/Header'
 import ChildTabs from './components/ChildTabs'
 import ChildCard from './components/ChildCard'
@@ -128,6 +128,8 @@ const App = () => {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   // 子供削除確認（ChildCard下部の削除ボタン用）
   const [confirmDeleteChildId, setConfirmDeleteChildId] = useState<string | null>(null)
+  // 子供情報編集モーダル
+  const [isEditChildModalOpen, setIsEditChildModalOpen] = useState(false)
   // 解除コード入力モーダル
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false)
   // 子供追加制限モーダル
@@ -180,6 +182,7 @@ const App = () => {
     activeChildId,
     setActiveChildId,
     addChild,
+    updateChild,
     deleteChild,
   } = useChildren(initialData.children, handleSaveChildren)
 
@@ -360,7 +363,14 @@ const App = () => {
             <section>
               <h2 className="text-base font-semibold text-rose-brown mb-3">基本情報</h2>
               <ChildCard child={activeChild} />
-              <div className="mt-3 flex justify-end">
+              <div className="mt-3 flex justify-between">
+                <button
+                  onClick={() => setIsEditChildModalOpen(true)}
+                  className="flex items-center gap-1.5 text-sm text-rose-brown hover:text-dark-brown transition-colors px-3 py-1.5 rounded-lg hover:bg-pink-soft/40"
+                >
+                  <Pencil size={15} />
+                  情報を編集
+                </button>
                 <button
                   onClick={() => setConfirmDeleteChildId(activeChild.id)}
                   className="flex items-center gap-1.5 text-sm text-rose-brown hover:text-dark-brown transition-colors px-3 py-1.5 rounded-lg hover:bg-pink-soft/40"
@@ -436,6 +446,24 @@ const App = () => {
         <AddChildModal
           onClose={() => setIsChildModalOpen(false)}
           onAdd={addChild}
+        />
+      )}
+
+      {/* 子供情報編集モーダル */}
+      {isEditChildModalOpen && activeChild && (
+        <AddChildModal
+          onClose={() => setIsEditChildModalOpen(false)}
+          onAdd={addChild}
+          editInitialValues={{
+            name: activeChild.name,
+            birthDate: activeChild.birthDate,
+            grade: activeChild.grade,
+            schoolName: activeChild.schoolName,
+            bloodType: activeChild.bloodType,
+            height: activeChild.height,
+            weight: activeChild.weight,
+          }}
+          onEdit={(values) => updateChild(activeChild.id, values)}
         />
       )}
 

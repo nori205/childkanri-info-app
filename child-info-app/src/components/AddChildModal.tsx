@@ -10,10 +10,12 @@ import { BLOOD_TYPES, GRADE_TYPES } from '../constants'
 interface AddChildModalProps {
   onClose: () => void
   onAdd: (values: ChildFormValues) => void
+  // 編集モード用
+  editInitialValues?: ChildFormValues
+  onEdit?: (values: ChildFormValues) => void
 }
 
-// フォームの初期値
-const initialValues: ChildFormValues = {
+const defaultValues: ChildFormValues = {
   name: '',
   birthDate: '',
   grade: '未就学',
@@ -23,8 +25,9 @@ const initialValues: ChildFormValues = {
   weight: '',
 }
 
-const AddChildModal = ({ onClose, onAdd }: AddChildModalProps) => {
-  const [values, setValues] = useState<ChildFormValues>(initialValues)
+const AddChildModal = ({ onClose, onAdd, editInitialValues, onEdit }: AddChildModalProps) => {
+  const isEditMode = !!editInitialValues
+  const [values, setValues] = useState<ChildFormValues>(editInitialValues ?? defaultValues)
   const [errors, setErrors] = useState<Partial<Record<keyof ChildFormValues, string>>>({})
 
   // 入力値の変更ハンドラ
@@ -52,7 +55,11 @@ const AddChildModal = ({ onClose, onAdd }: AddChildModalProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!validate()) return
-    onAdd(values)
+    if (isEditMode && onEdit) {
+      onEdit(values)
+    } else {
+      onAdd(values)
+    }
     onClose()
   }
 
@@ -65,7 +72,7 @@ const AddChildModal = ({ onClose, onAdd }: AddChildModalProps) => {
       <div className="bg-cream rounded-2xl shadow-xl w-full max-w-md p-6">
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold text-rose-brown">子供を追加</h2>
+          <h2 className="text-lg font-bold text-rose-brown">{isEditMode ? '基本情報を編集' : '子供を追加'}</h2>
           <button
             onClick={onClose}
             className="text-rose-brown hover:opacity-70 transition-opacity"
@@ -203,7 +210,7 @@ const AddChildModal = ({ onClose, onAdd }: AddChildModalProps) => {
               type="submit"
               className="flex-1 bg-pink-muted text-cream py-2.5 rounded-xl font-medium shadow hover:opacity-90 active:opacity-80 transition-opacity"
             >
-              追加する
+              {isEditMode ? '保存する' : '追加する'}
             </button>
           </div>
         </form>
