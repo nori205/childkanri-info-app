@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState } from 'react'
-import { Trash2, Plus } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import type { Child } from '../types'
 import ChildCard from './ChildCard'
 
@@ -11,7 +11,6 @@ interface ChildTabsProps {
   children: Child[]
   activeChildId: string | null
   onTabChange: (id: string) => void
-  onAddChild: () => void
   onDeleteChild: (id: string) => void
   showCard?: boolean  // falseのときはChildCardを表示しない（デフォルトtrue）
 }
@@ -20,7 +19,6 @@ const ChildTabs = ({
   children,
   activeChildId,
   onTabChange,
-  onAddChild,
   onDeleteChild,
   showCard = true,
 }: ChildTabsProps) => {
@@ -60,14 +58,6 @@ const ChildTabs = ({
           </button>
         ))}
 
-        {/* 子供を追加ボタン */}
-        <button
-          onClick={onAddChild}
-          className="flex-shrink-0 flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium bg-cream border border-pink-soft text-rose-brown hover:bg-pink-soft/40 transition-colors"
-        >
-          <Plus size={15} />
-          追加
-        </button>
       </div>
 
       {/* アクティブな子供の情報カード（showCard=trueのときのみ表示） */}

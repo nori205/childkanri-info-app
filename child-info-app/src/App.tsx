@@ -280,7 +280,6 @@ const App = () => {
                 children={children}
                 activeChildId={activeChildId}
                 onTabChange={setActiveChildId}
-                onAddChild={handleAddChildClick}
                 onDeleteChild={deleteChild}
                 showCard={false}
               />
