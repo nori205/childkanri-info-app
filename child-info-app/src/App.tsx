@@ -134,6 +134,7 @@ const App = () => {
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false)
   // 子供追加制限モーダル
   const [isChildLimitModalOpen, setIsChildLimitModalOpen] = useState(false)
+  const [isTaskFilterActive, setIsTaskFilterActive] = useState(false)
 
   // ── ライセンス管理 ────────────────────────────────
 
@@ -312,12 +313,18 @@ const App = () => {
                   タスクを追加
                 </button>
               </div>
-              <TaskSummary tasks={activeTasks} appointments={activeAppointments} />
-              <TaskList
+              <TaskSummary
                 tasks={activeTasks}
-                onToggle={toggleTask}
-                onDelete={deleteTask}
+                appointments={activeAppointments}
+                onActiveFilterChange={setIsTaskFilterActive}
               />
+              {isTaskFilterActive && (
+                <TaskList
+                  tasks={activeTasks}
+                  onToggle={toggleTask}
+                  onDelete={deleteTask}
+                />
+              )}
             </section>
 
             {/* ⑤ 健康・医療情報（通院予約→病歴→アレルギー→ワクチン→メモ→かかりつけ医） */}
