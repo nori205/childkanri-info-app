@@ -44,4 +44,5 @@
 /* ベーススタイル */
 body {
   font-family: 'Zen Maru Gothic', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
