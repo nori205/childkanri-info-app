@@ -17,6 +17,7 @@ import FamilyInfo from './components/FamilyInfo'
 import HealthSection from './components/health/HealthSection'
 import SummarySection from './components/SummarySection'
 import BackupSection from './components/BackupSection'
+import AppointmentReminder from './components/AppointmentReminder'
 import LicenseGate, {
   LicenseBanner,
   UnlockModal,
@@ -260,6 +261,14 @@ const App = () => {
 
         {/* ① バックアップ・復元（最上部） */}
         <BackupSection />
+
+        {/* 起動時予約リマインダー */}
+        {children.length > 0 && (
+          <AppointmentReminder
+            appointments={allAppointments}
+            children={children}
+          />
+        )}
 
         {/* ② 子供タブ（名前切り替え＋追加ボタン） */}
         <section>
