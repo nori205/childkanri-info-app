@@ -23,10 +23,13 @@ interface HealthSectionProps {
   onUnlockClick: () => void
   onAddDoctor: (values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteDoctor: (id: string) => void
+  onUpdateDoctor: (id: string, values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   onAddAllergy: (values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteAllergy: (id: string) => void
+  onUpdateAllergy: (id: string, values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => void
   onAddIllness: (values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteIllness: (id: string) => void
+  onUpdateIllness: (id: string, values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
   onSaveHealthMemo: (content: string) => void
   onUpsertVaccineRecord: (
     vaccineName: string, vaccineType: VaccineType,
@@ -36,23 +39,26 @@ interface HealthSectionProps {
   onDeleteCustomVaccine: (id: string) => void
   onAddAppointment: (values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteAppointment: (id: string) => void
+  onUpdateAppointment: (id: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   onAddWelfareProvider: (values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteWelfareProvider: (id: string) => void
+  onUpdateWelfareProvider: (id: string, values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
   onAddWelfareConsultant: (values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteWelfareConsultant: (id: string) => void
+  onUpdateWelfareConsultant: (id: string, values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
   onUpsertDiagnosis: (values: Omit<DiagnosisInfo, 'childId' | 'updatedAt'>) => void
 }
 
 const HealthSection = ({
   health, isUnlocked, onUnlockClick,
-  onAddDoctor, onDeleteDoctor,
-  onAddAllergy, onDeleteAllergy,
-  onAddIllness, onDeleteIllness,
+  onAddDoctor, onDeleteDoctor, onUpdateDoctor,
+  onAddAllergy, onDeleteAllergy, onUpdateAllergy,
+  onAddIllness, onDeleteIllness, onUpdateIllness,
   onSaveHealthMemo,
   onUpsertVaccineRecord, onAddCustomVaccine, onDeleteCustomVaccine,
-  onAddAppointment, onDeleteAppointment,
-  onAddWelfareProvider, onDeleteWelfareProvider,
-  onAddWelfareConsultant, onDeleteWelfareConsultant,
+  onAddAppointment, onDeleteAppointment, onUpdateAppointment,
+  onAddWelfareProvider, onDeleteWelfareProvider, onUpdateWelfareProvider,
+  onAddWelfareConsultant, onDeleteWelfareConsultant, onUpdateWelfareConsultant,
   onUpsertDiagnosis,
 }: HealthSectionProps) => {
   return (
@@ -75,6 +81,7 @@ const HealthSection = ({
               appointments={health.appointments}
               onAdd={onAddAppointment}
               onDelete={onDeleteAppointment}
+              onUpdate={onUpdateAppointment}
               locationSuggestions={health.doctors.map((d) => d.hospitalName).filter(Boolean)}
             />
 
@@ -83,6 +90,7 @@ const HealthSection = ({
               doctors={health.doctors}
               onAdd={onAddDoctor}
               onDelete={onDeleteDoctor}
+              onUpdate={onUpdateDoctor}
               isUnlocked={isUnlocked}
               onUnlockClick={onUnlockClick}
             />
@@ -92,6 +100,7 @@ const HealthSection = ({
               illnesses={health.illnesses}
               onAdd={onAddIllness}
               onDelete={onDeleteIllness}
+              onUpdate={onUpdateIllness}
             />
 
             {/* アレルギー */}
@@ -99,6 +108,7 @@ const HealthSection = ({
               allergies={health.allergies}
               onAdd={onAddAllergy}
               onDelete={onDeleteAllergy}
+              onUpdate={onUpdateAllergy}
             />
 
             {/* ワクチン */}
@@ -117,8 +127,10 @@ const HealthSection = ({
               diagnosisInfo={health.diagnosisInfo}
               onAddProvider={onAddWelfareProvider}
               onDeleteProvider={onDeleteWelfareProvider}
+              onUpdateProvider={onUpdateWelfareProvider}
               onAddConsultant={onAddWelfareConsultant}
               onDeleteConsultant={onDeleteWelfareConsultant}
+              onUpdateConsultant={onUpdateWelfareConsultant}
               onUpsertDiagnosis={onUpsertDiagnosis}
             />
 

@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState } from 'react'
-import { Stethoscope, Phone, Trash2, Plus, X, Lock } from 'lucide-react'
+import { Stethoscope, Phone, Trash2, Plus, X, Lock, Pencil } from 'lucide-react'
 import Accordion from './Accordion'
 import type { Doctor } from '../../types'
 import { SPECIALTY_OPTIONS, FREE_HEALTH_LIMIT } from '../../constants'
@@ -12,6 +12,7 @@ interface DoctorSectionProps {
   doctors: Doctor[]
   onAdd: (values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   // 無料・有料制御（省略時は制限なし）
   isUnlocked?: boolean
   onUnlockClick?: () => void
@@ -26,10 +27,11 @@ const emptyForm = () => ({
   memo: '',
 })
 
-const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockClick }: DoctorSectionProps) => {
+const DoctorSection = ({ doctors, onAdd, onDelete, onUpdate, isUnlocked = true, onUnlockClick }: DoctorSectionProps) => {
   // 無料版で追加上限に達しているか
   const isLimitReached = !isUnlocked && doctors.length >= FREE_HEALTH_LIMIT
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
 
@@ -41,20 +43,46 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
     if (name === 'hospitalName' && error) setError('')
   }
 
-  const handleAdd = () => {
+  const openNewForm = () => {
+    setEditingId(null)
+    setForm(emptyForm())
+    setError('')
+    setShowForm(true)
+  }
+
+  const openEditForm = (doc: Doctor) => {
+    setEditingId(doc.id)
+    setForm({
+      specialty: doc.specialty,
+      hospitalName: doc.hospitalName,
+      phone: doc.phone,
+      patientCardNumber: doc.patientCardNumber,
+      memo: doc.memo,
+    })
+    setError('')
+    setShowForm(true)
+  }
+
+  const handleSave = () => {
     if (!form.hospitalName.trim()) {
       setError('病院名を入力してください')
       return
     }
-    onAdd({ ...form, hospitalName: form.hospitalName.trim() })
-    setForm(emptyForm)
+    if (editingId) {
+      onUpdate(editingId, { ...form, hospitalName: form.hospitalName.trim() })
+    } else {
+      onAdd({ ...form, hospitalName: form.hospitalName.trim() })
+    }
+    setForm(emptyForm())
     setShowForm(false)
+    setEditingId(null)
     setError('')
   }
 
   const handleCancel = () => {
-    setForm(emptyForm)
+    setForm(emptyForm())
     setShowForm(false)
+    setEditingId(null)
     setError('')
   }
 
@@ -102,6 +130,14 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
                   <p className="text-xs text-dark-brown/60 mt-1">{doc.memo}</p>
                 )}
               </div>
+              {/* 編集ボタン */}
+              <button
+                onClick={() => openEditForm(doc)}
+                className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0"
+                aria-label="編集"
+              >
+                <Pencil size={14} />
+              </button>
               {/* 削除ボタン */}
               <button
                 onClick={() => onDelete(doc.id)}
@@ -115,12 +151,14 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
         </div>
       )}
 
-      {/* 追加フォーム（インライン展開） */}
+      {/* 追加・編集フォーム（インライン展開） */}
       {showForm ? (
         <div className="bg-white rounded-xl p-4 border border-pink-soft/60 space-y-3">
           {/* フォームヘッダー */}
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-dark-brown">新規追加</p>
+            <p className="text-sm font-medium text-dark-brown">
+              {editingId ? '編集' : '新規追加'}
+            </p>
             <button
               onClick={handleCancel}
               className="text-rose-brown/50 hover:text-rose-brown"
@@ -199,10 +237,10 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
               キャンセル
             </button>
             <button
-              onClick={handleAdd}
+              onClick={handleSave}
               className="flex-1 py-2 rounded-lg bg-pink-muted text-cream text-sm font-medium hover:opacity-90 transition-opacity"
             >
-              追加する
+              {editingId ? '保存する' : '追加する'}
             </button>
           </div>
         </div>
@@ -218,7 +256,7 @@ const DoctorSection = ({ doctors, onAdd, onDelete, isUnlocked = true, onUnlockCl
       ) : (
         // 追加ボタン
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openNewForm}
           className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-pink-muted/60 text-sm text-rose-brown hover:bg-pink-soft/30 transition-colors"
         >
           <Plus size={15} />

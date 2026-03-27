@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState } from 'react'
-import { Heart, Phone, Plus, Trash2, X, Save } from 'lucide-react'
+import { Heart, Phone, Plus, Trash2, X, Save, Pencil } from 'lucide-react'
 import Accordion from './Accordion'
 import type { WelfareProvider, WelfareConsultant, DiagnosisInfo } from '../../types'
 
@@ -13,8 +13,10 @@ interface WelfareSectionProps {
   diagnosisInfo: DiagnosisInfo | null
   onAddProvider: (values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteProvider: (id: string) => void
+  onUpdateProvider: (id: string, values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
   onAddConsultant: (values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteConsultant: (id: string) => void
+  onUpdateConsultant: (id: string, values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
   onUpsertDiagnosis: (values: Omit<DiagnosisInfo, 'childId' | 'updatedAt'>) => void
 }
 
@@ -27,8 +29,10 @@ const WelfareSection = ({
   diagnosisInfo,
   onAddProvider,
   onDeleteProvider,
+  onUpdateProvider,
   onAddConsultant,
   onDeleteConsultant,
+  onUpdateConsultant,
   onUpsertDiagnosis,
 }: WelfareSectionProps) => {
   // 診断・手帳フォーム
@@ -41,11 +45,13 @@ const WelfareSection = ({
 
   // 事業者追加フォーム
   const [showProviderForm, setShowProviderForm] = useState(false)
+  const [editingProviderId, setEditingProviderId] = useState<string | null>(null)
   const [providerForm, setProviderForm] = useState(emptyProvider)
   const [providerError, setProviderError] = useState('')
 
   // 相談支援専門員追加フォーム
   const [showConsultantForm, setShowConsultantForm] = useState(false)
+  const [editingConsultantId, setEditingConsultantId] = useState<string | null>(null)
   const [consultantForm, setConsultantForm] = useState(emptyConsultant)
   const [consultantError, setConsultantError] = useState('')
 
@@ -57,23 +63,65 @@ const WelfareSection = ({
     setTimeout(() => setDiagSaved(false), 2000)
   }
 
-  const handleAddProvider = () => {
+  const openNewProviderForm = () => {
+    setEditingProviderId(null)
+    setProviderForm(emptyProvider())
+    setProviderError('')
+    setShowProviderForm(true)
+  }
+
+  const openEditProviderForm = (wp: WelfareProvider) => {
+    setEditingProviderId(wp.id)
+    setProviderForm({ name: wp.name, phone: wp.phone })
+    setProviderError('')
+    setShowProviderForm(true)
+  }
+
+  const handleSaveProvider = () => {
     if (!providerForm.name.trim()) { setProviderError('事業者名を入力してください'); return }
-    onAddProvider({ name: providerForm.name.trim(), phone: providerForm.phone.trim() })
+    if (editingProviderId) {
+      onUpdateProvider(editingProviderId, { name: providerForm.name.trim(), phone: providerForm.phone.trim() })
+    } else {
+      onAddProvider({ name: providerForm.name.trim(), phone: providerForm.phone.trim() })
+    }
     setProviderForm(emptyProvider())
     setShowProviderForm(false)
+    setEditingProviderId(null)
     setProviderError('')
   }
 
-  const handleAddConsultant = () => {
+  const openNewConsultantForm = () => {
+    setEditingConsultantId(null)
+    setConsultantForm(emptyConsultant())
+    setConsultantError('')
+    setShowConsultantForm(true)
+  }
+
+  const openEditConsultantForm = (wc: WelfareConsultant) => {
+    setEditingConsultantId(wc.id)
+    setConsultantForm({ name: wc.name, office: wc.office, phone: wc.phone })
+    setConsultantError('')
+    setShowConsultantForm(true)
+  }
+
+  const handleSaveConsultant = () => {
     if (!consultantForm.name.trim()) { setConsultantError('名前を入力してください'); return }
-    onAddConsultant({
-      name: consultantForm.name.trim(),
-      office: consultantForm.office.trim(),
-      phone: consultantForm.phone.trim(),
-    })
+    if (editingConsultantId) {
+      onUpdateConsultant(editingConsultantId, {
+        name: consultantForm.name.trim(),
+        office: consultantForm.office.trim(),
+        phone: consultantForm.phone.trim(),
+      })
+    } else {
+      onAddConsultant({
+        name: consultantForm.name.trim(),
+        office: consultantForm.office.trim(),
+        phone: consultantForm.phone.trim(),
+      })
+    }
     setConsultantForm(emptyConsultant())
     setShowConsultantForm(false)
+    setEditingConsultantId(null)
     setConsultantError('')
   }
 
@@ -139,7 +187,14 @@ const WelfareSection = ({
                       </a>
                     )}
                   </div>
-                  <button onClick={() => onDeleteProvider(wp.id)} className="text-rose-brown/40 hover:text-rose-brown transition-colors">
+                  <button
+                    onClick={() => openEditProviderForm(wp)}
+                    className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0"
+                    aria-label="編集"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button onClick={() => onDeleteProvider(wp.id)} className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -149,8 +204,10 @@ const WelfareSection = ({
           {showProviderForm ? (
             <div className="bg-white rounded-xl p-3 border border-pink-soft/60 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-dark-brown">事業者を追加</p>
-                <button onClick={() => { setShowProviderForm(false); setProviderError('') }} className="text-rose-brown/50 hover:text-rose-brown"><X size={14} /></button>
+                <p className="text-xs font-medium text-dark-brown">
+                  {editingProviderId ? '事業者を編集' : '事業者を追加'}
+                </p>
+                <button onClick={() => { setShowProviderForm(false); setEditingProviderId(null); setProviderError('') }} className="text-rose-brown/50 hover:text-rose-brown"><X size={14} /></button>
               </div>
               <input
                 type="text"
@@ -168,13 +225,15 @@ const WelfareSection = ({
                 className="w-full border border-pink-soft rounded-lg px-3 py-2 bg-cream text-dark-brown text-sm placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
               />
               <div className="flex gap-2">
-                <button onClick={() => { setShowProviderForm(false); setProviderError('') }} className="flex-1 py-1.5 rounded-lg border border-pink-soft text-rose-brown text-xs hover:bg-pink-soft/30 transition-colors">キャンセル</button>
-                <button onClick={handleAddProvider} className="flex-1 py-1.5 rounded-lg bg-pink-muted text-cream text-xs font-medium hover:opacity-90 transition-opacity">追加する</button>
+                <button onClick={() => { setShowProviderForm(false); setEditingProviderId(null); setProviderError('') }} className="flex-1 py-1.5 rounded-lg border border-pink-soft text-rose-brown text-xs hover:bg-pink-soft/30 transition-colors">キャンセル</button>
+                <button onClick={handleSaveProvider} className="flex-1 py-1.5 rounded-lg bg-pink-muted text-cream text-xs font-medium hover:opacity-90 transition-opacity">
+                  {editingProviderId ? '保存する' : '追加する'}
+                </button>
               </div>
             </div>
           ) : (
             <button
-              onClick={() => setShowProviderForm(true)}
+              onClick={openNewProviderForm}
               className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-dashed border-pink-muted/60 text-sm text-rose-brown hover:bg-pink-soft/30 transition-colors"
             >
               <Plus size={14} />事業者を追加
@@ -198,7 +257,14 @@ const WelfareSection = ({
                       </a>
                     )}
                   </div>
-                  <button onClick={() => onDeleteConsultant(wc.id)} className="text-rose-brown/40 hover:text-rose-brown transition-colors mt-0.5">
+                  <button
+                    onClick={() => openEditConsultantForm(wc)}
+                    className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0"
+                    aria-label="編集"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button onClick={() => onDeleteConsultant(wc.id)} className="text-rose-brown/40 hover:text-rose-brown transition-colors mt-0.5 flex-shrink-0">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -208,8 +274,10 @@ const WelfareSection = ({
           {showConsultantForm ? (
             <div className="bg-white rounded-xl p-3 border border-pink-soft/60 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-medium text-dark-brown">相談支援専門員を追加</p>
-                <button onClick={() => { setShowConsultantForm(false); setConsultantError('') }} className="text-rose-brown/50 hover:text-rose-brown"><X size={14} /></button>
+                <p className="text-xs font-medium text-dark-brown">
+                  {editingConsultantId ? '相談支援専門員を編集' : '相談支援専門員を追加'}
+                </p>
+                <button onClick={() => { setShowConsultantForm(false); setEditingConsultantId(null); setConsultantError('') }} className="text-rose-brown/50 hover:text-rose-brown"><X size={14} /></button>
               </div>
               <input
                 type="text"
@@ -234,13 +302,15 @@ const WelfareSection = ({
                 className="w-full border border-pink-soft rounded-lg px-3 py-2 bg-cream text-dark-brown text-sm placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
               />
               <div className="flex gap-2">
-                <button onClick={() => { setShowConsultantForm(false); setConsultantError('') }} className="flex-1 py-1.5 rounded-lg border border-pink-soft text-rose-brown text-xs hover:bg-pink-soft/30 transition-colors">キャンセル</button>
-                <button onClick={handleAddConsultant} className="flex-1 py-1.5 rounded-lg bg-pink-muted text-cream text-xs font-medium hover:opacity-90 transition-opacity">追加する</button>
+                <button onClick={() => { setShowConsultantForm(false); setEditingConsultantId(null); setConsultantError('') }} className="flex-1 py-1.5 rounded-lg border border-pink-soft text-rose-brown text-xs hover:bg-pink-soft/30 transition-colors">キャンセル</button>
+                <button onClick={handleSaveConsultant} className="flex-1 py-1.5 rounded-lg bg-pink-muted text-cream text-xs font-medium hover:opacity-90 transition-opacity">
+                  {editingConsultantId ? '保存する' : '追加する'}
+                </button>
               </div>
             </div>
           ) : (
             <button
-              onClick={() => setShowConsultantForm(true)}
+              onClick={openNewConsultantForm}
               className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl border border-dashed border-pink-muted/60 text-sm text-rose-brown hover:bg-pink-soft/30 transition-colors"
             >
               <Plus size={14} />相談支援専門員を追加

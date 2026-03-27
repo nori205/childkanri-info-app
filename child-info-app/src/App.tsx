@@ -198,15 +198,15 @@ const App = () => {
   )
 
   const {
-    addDoctor, deleteDoctor,
-    addAllergy, deleteAllergy,
-    addIllness, deleteIllness,
+    addDoctor, deleteDoctor, updateDoctor,
+    addAllergy, deleteAllergy, updateAllergy,
+    addIllness, deleteIllness, updateIllness,
     updateHealthMemo,
     upsertVaccineRecord,
     addCustomVaccine, deleteCustomVaccine,
-    addAppointment, deleteAppointment,
-    addWelfareProvider, deleteWelfareProvider,
-    addWelfareConsultant, deleteWelfareConsultant,
+    addAppointment, deleteAppointment, updateAppointment,
+    addWelfareProvider, deleteWelfareProvider, updateWelfareProvider,
+    addWelfareConsultant, deleteWelfareConsultant, updateWelfareConsultant,
     upsertDiagnosisInfo,
     getHealthByChildId,
   } = useHealth(
@@ -334,10 +334,13 @@ const App = () => {
                   onUnlockClick={() => setIsUnlockModalOpen(true)}
                   onAddDoctor={(v) => addDoctor(activeChild.id, v)}
                   onDeleteDoctor={deleteDoctor}
+                  onUpdateDoctor={updateDoctor}
                   onAddAllergy={(v) => addAllergy(activeChild.id, v)}
                   onDeleteAllergy={deleteAllergy}
+                  onUpdateAllergy={updateAllergy}
                   onAddIllness={(v) => addIllness(activeChild.id, v)}
                   onDeleteIllness={deleteIllness}
+                  onUpdateIllness={updateIllness}
                   onSaveHealthMemo={(c) => updateHealthMemo(activeChild.id, c)}
                   onUpsertVaccineRecord={(
                     name: string,
@@ -350,10 +353,13 @@ const App = () => {
                   onDeleteCustomVaccine={deleteCustomVaccine}
                   onAddAppointment={(v) => addAppointment(activeChild.id, v)}
                   onDeleteAppointment={deleteAppointment}
+                  onUpdateAppointment={updateAppointment}
                   onAddWelfareProvider={(v) => addWelfareProvider(activeChild.id, v)}
                   onDeleteWelfareProvider={deleteWelfareProvider}
+                  onUpdateWelfareProvider={updateWelfareProvider}
                   onAddWelfareConsultant={(v) => addWelfareConsultant(activeChild.id, v)}
                   onDeleteWelfareConsultant={deleteWelfareConsultant}
+                  onUpdateWelfareConsultant={updateWelfareConsultant}
                   onUpsertDiagnosis={(v) => upsertDiagnosisInfo(activeChild.id, v)}
                 />
               )}

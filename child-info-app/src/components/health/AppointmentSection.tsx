@@ -3,13 +3,14 @@
 // ===========================
 
 import { useState } from 'react'
-import { CalendarDays, ChevronDown, ChevronUp, Trash2, Plus } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronUp, Trash2, Plus, Pencil } from 'lucide-react'
 import type { Appointment } from '../../types'
 
 interface AppointmentSectionProps {
   appointments: Appointment[]
   onAdd: (values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   locationSuggestions?: string[]
 }
 
@@ -44,16 +45,21 @@ const groupByMonth = (appts: Appointment[]): { label: string; items: Appointment
 const AppointmentItem = ({
   appointment,
   onDelete,
+  onEdit,
 }: {
   appointment: Appointment
   onDelete: (id: string) => void
+  onEdit: (appointment: Appointment) => void
 }) => (
   <li className="flex items-start justify-between gap-2 bg-cream rounded-lg px-3 py-2">
     <div className="flex-1 min-w-0">
-      {/* 日付・内容 */}
+      {/* 日付・時間・内容 */}
       <div className="flex items-center gap-2">
         <span className="text-xs font-bold text-rose-brown whitespace-nowrap">
           {formatDate(appointment.date)}
+          {appointment.time && (
+            <span className="ml-1 font-normal">{appointment.time}</span>
+          )}
         </span>
         <span className="text-sm text-dark-brown truncate">{appointment.content}</span>
       </div>
@@ -66,6 +72,14 @@ const AppointmentItem = ({
         <p className="text-xs text-dark-brown/60 mt-0.5 truncate">{appointment.memo}</p>
       )}
     </div>
+    {/* 編集ボタン */}
+    <button
+      onClick={() => onEdit(appointment)}
+      className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0 mt-0.5"
+      aria-label="編集"
+    >
+      <Pencil size={14} />
+    </button>
     {/* 削除ボタン */}
     <button
       onClick={() => onDelete(appointment.id)}
@@ -79,16 +93,19 @@ const AppointmentItem = ({
 
 // ── メインコンポーネント ──────────────
 
-const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions = [] }: AppointmentSectionProps) => {
+const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationSuggestions = [] }: AppointmentSectionProps) => {
   // アコーディオンの開閉
   const [isOpen, setIsOpen] = useState(true)
   // 全期間表示モード
   const [showAll, setShowAll] = useState(false)
   // 追加フォームの表示
   const [isFormOpen, setIsFormOpen] = useState(false)
+  // 編集中のID（nullなら新規追加）
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // フォームの入力値
   const [date, setDate] = useState('')
+  const [time, setTime] = useState('')
   const [content, setContent] = useState('')
   const [location, setLocation] = useState('')
   const [memo, setMemo] = useState('')
@@ -123,29 +140,59 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
 
   // ── フォーム操作 ──────────────────────
 
+  const openNewForm = () => {
+    setEditingId(null)
+    setDate('')
+    setTime('')
+    setContent('')
+    setLocation('')
+    setMemo('')
+    setIsFormOpen(true)
+  }
+
+  const openEditForm = (appointment: Appointment) => {
+    setEditingId(appointment.id)
+    setDate(appointment.date)
+    setTime(appointment.time ?? '')
+    setContent(appointment.content)
+    setLocation(appointment.location)
+    setMemo(appointment.memo)
+    setIsFormOpen(true)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!date || !content.trim()) return
-    onAdd({
+    const values = {
       date,
+      time,
       content: content.trim(),
       location: location.trim(),
       memo: memo.trim(),
-    })
+    }
+    if (editingId) {
+      onUpdate(editingId, values)
+    } else {
+      onAdd(values)
+    }
     // フォームをリセットして閉じる
     setDate('')
+    setTime('')
     setContent('')
     setLocation('')
     setMemo('')
     setIsFormOpen(false)
+    setEditingId(null)
   }
 
   const handleCancel = () => {
     setDate('')
+    setTime('')
     setContent('')
     setLocation('')
     setMemo('')
     setIsFormOpen(false)
+    setEditingId(null)
   }
 
   return (
@@ -185,7 +232,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
             ) : (
               <ul className="space-y-2">
                 {defaultAppointments.map((a) => (
-                  <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} />
+                  <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} onEdit={openEditForm} />
                 ))}
               </ul>
             )
@@ -209,7 +256,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
                     </div>
                     <ul className="space-y-2">
                       {group.items.map((a) => (
-                        <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} />
+                        <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} onEdit={openEditForm} />
                       ))}
                     </ul>
                   </div>
@@ -237,9 +284,14 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
             )}
           </div>
 
-          {/* 追加フォーム */}
+          {/* 追加・編集フォーム */}
           {isFormOpen ? (
             <form onSubmit={handleSubmit} className="bg-cream rounded-lg p-3 space-y-2">
+              {/* フォームヘッダー */}
+              <p className="text-xs font-medium text-dark-brown">
+                {editingId ? '編集' : '新規追加'}
+              </p>
+
               {/* 日付（必須） */}
               <div>
                 <label className="text-xs text-dark-brown font-medium">
@@ -250,6 +302,17 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
                   required
+                  className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown"
+                />
+              </div>
+
+              {/* 時間（任意） */}
+              <div>
+                <label className="text-xs text-dark-brown font-medium">時間（任意）</label>
+                <input
+                  type="time"
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown"
                 />
               </div>
@@ -314,7 +377,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
                   type="submit"
                   className="flex-1 text-sm bg-pink-muted text-cream py-1.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
                 >
-                  追加する
+                  {editingId ? '保存する' : '追加する'}
                 </button>
                 <button
                   type="button"
@@ -327,7 +390,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, locationSuggestions
             </form>
           ) : (
             <button
-              onClick={() => setIsFormOpen(true)}
+              onClick={openNewForm}
               className="w-full flex items-center justify-center gap-1 text-sm text-rose-brown border border-rose-brown/30 rounded-lg py-2 hover:bg-cream transition-colors"
             >
               <Plus size={14} />

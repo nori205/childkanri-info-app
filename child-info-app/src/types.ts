@@ -161,6 +161,7 @@ export interface Appointment {
   id: string
   childId: string
   date: string        // YYYY-MM-DD（必須）
+  time: string        // HH:MM（任意）
   content: string     // 内容 例：小児科・療育・皮膚科（必須）
   location: string    // 病院名・場所（任意）
   memo: string        // メモ（任意）

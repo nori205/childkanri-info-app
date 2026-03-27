@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState } from 'react'
-import { ShieldAlert, Trash2, Plus, X } from 'lucide-react'
+import { ShieldAlert, Trash2, Plus, X, Pencil } from 'lucide-react'
 import Accordion from './Accordion'
 import type { Allergy, AllergySeverity } from '../../types'
 import { ALLERGY_SEVERITIES, SEVERITY_COLOR } from '../../constants'
@@ -12,6 +12,7 @@ interface AllergySectionProps {
   allergies: Allergy[]
   onAdd: (values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => void
 }
 
 const emptyForm = () => ({
@@ -21,8 +22,9 @@ const emptyForm = () => ({
   memo: '',
 })
 
-const AllergySection = ({ allergies, onAdd, onDelete }: AllergySectionProps) => {
+const AllergySection = ({ allergies, onAdd, onDelete, onUpdate }: AllergySectionProps) => {
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
 
@@ -34,20 +36,45 @@ const AllergySection = ({ allergies, onAdd, onDelete }: AllergySectionProps) => 
     if (name === 'allergen' && error) setError('')
   }
 
-  const handleAdd = () => {
+  const openNewForm = () => {
+    setEditingId(null)
+    setForm(emptyForm())
+    setError('')
+    setShowForm(true)
+  }
+
+  const openEditForm = (al: Allergy) => {
+    setEditingId(al.id)
+    setForm({
+      allergen: al.allergen,
+      severity: al.severity,
+      treatment: al.treatment,
+      memo: al.memo,
+    })
+    setError('')
+    setShowForm(true)
+  }
+
+  const handleSave = () => {
     if (!form.allergen.trim()) {
       setError('アレルゲン名を入力してください')
       return
     }
-    onAdd({ ...form, allergen: form.allergen.trim() })
-    setForm(emptyForm)
+    if (editingId) {
+      onUpdate(editingId, { ...form, allergen: form.allergen.trim() })
+    } else {
+      onAdd({ ...form, allergen: form.allergen.trim() })
+    }
+    setForm(emptyForm())
     setShowForm(false)
+    setEditingId(null)
     setError('')
   }
 
   const handleCancel = () => {
-    setForm(emptyForm)
+    setForm(emptyForm())
     setShowForm(false)
+    setEditingId(null)
     setError('')
   }
 
@@ -88,6 +115,14 @@ const AllergySection = ({ allergies, onAdd, onDelete }: AllergySectionProps) => 
                   <p className="text-xs text-dark-brown/60 mt-0.5">{al.memo}</p>
                 )}
               </div>
+              {/* 編集ボタン */}
+              <button
+                onClick={() => openEditForm(al)}
+                className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0"
+                aria-label="編集"
+              >
+                <Pencil size={14} />
+              </button>
               {/* 削除ボタン */}
               <button
                 onClick={() => onDelete(al.id)}
@@ -101,11 +136,13 @@ const AllergySection = ({ allergies, onAdd, onDelete }: AllergySectionProps) => 
         </div>
       )}
 
-      {/* 追加フォーム */}
+      {/* 追加・編集フォーム */}
       {showForm ? (
         <div className="bg-white rounded-xl p-4 border border-pink-soft/60 space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-dark-brown">新規追加</p>
+            <p className="text-sm font-medium text-dark-brown">
+              {editingId ? '編集' : '新規追加'}
+            </p>
             <button
               onClick={handleCancel}
               className="text-rose-brown/50 hover:text-rose-brown"
@@ -176,16 +213,16 @@ const AllergySection = ({ allergies, onAdd, onDelete }: AllergySectionProps) => 
               キャンセル
             </button>
             <button
-              onClick={handleAdd}
+              onClick={handleSave}
               className="flex-1 py-2 rounded-lg bg-pink-muted text-cream text-sm font-medium hover:opacity-90 transition-opacity"
             >
-              追加する
+              {editingId ? '保存する' : '追加する'}
             </button>
           </div>
         </div>
       ) : (
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openNewForm}
           className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-pink-muted/60 text-sm text-rose-brown hover:bg-pink-soft/30 transition-colors"
         >
           <Plus size={15} />

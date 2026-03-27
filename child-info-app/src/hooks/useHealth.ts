@@ -48,10 +48,13 @@ interface HealthSaveData {
 interface UseHealthReturn {
   addDoctor: (childId: string, values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   deleteDoctor: (id: string) => void
+  updateDoctor: (id: string, values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   addAllergy: (childId: string, values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => void
   deleteAllergy: (id: string) => void
+  updateAllergy: (id: string, values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => void
   addIllness: (childId: string, values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
   deleteIllness: (id: string) => void
+  updateIllness: (id: string, values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
   updateHealthMemo: (childId: string, content: string) => void
   upsertVaccineRecord: (
     childId: string,
@@ -65,10 +68,13 @@ interface UseHealthReturn {
   deleteCustomVaccine: (id: string) => void
   addAppointment: (childId: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   deleteAppointment: (id: string) => void
+  updateAppointment: (id: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   addWelfareProvider: (childId: string, values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
   deleteWelfareProvider: (id: string) => void
+  updateWelfareProvider: (id: string, values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
   addWelfareConsultant: (childId: string, values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
   deleteWelfareConsultant: (id: string) => void
+  updateWelfareConsultant: (id: string, values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
   upsertDiagnosisInfo: (childId: string, values: Omit<DiagnosisInfo, 'childId' | 'updatedAt'>) => void
   getHealthByChildId: (childId: string) => ChildHealthData
 }
@@ -137,6 +143,15 @@ export const useHealth = (
     [doctors, save, snap],
   )
 
+  const updateDoctor = useCallback(
+    (id: string, values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => {
+      const d = doctors.map((x) => x.id === id ? { ...x, ...values } : x)
+      setDoctors(d)
+      save(snap({ doctors: d }))
+    },
+    [doctors, save, snap],
+  )
+
   // ── アレルギー ────────────────────────
 
   const addAllergy = useCallback(
@@ -157,6 +172,15 @@ export const useHealth = (
     [allergies, save, snap],
   )
 
+  const updateAllergy = useCallback(
+    (id: string, values: Omit<Allergy, 'id' | 'childId' | 'createdAt'>) => {
+      const a = allergies.map((x) => x.id === id ? { ...x, ...values } : x)
+      setAllergies(a)
+      save(snap({ allergies: a }))
+    },
+    [allergies, save, snap],
+  )
+
   // ── 病気履歴 ──────────────────────────
 
   const addIllness = useCallback(
@@ -171,6 +195,15 @@ export const useHealth = (
   const deleteIllness = useCallback(
     (id: string) => {
       const il = illnesses.filter((x) => x.id !== id)
+      setIllnesses(il)
+      save(snap({ illnesses: il }))
+    },
+    [illnesses, save, snap],
+  )
+
+  const updateIllness = useCallback(
+    (id: string, values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => {
+      const il = illnesses.map((x) => x.id === id ? { ...x, ...values } : x)
       setIllnesses(il)
       save(snap({ illnesses: il }))
     },
@@ -249,6 +282,15 @@ export const useHealth = (
     [appointments, save, snap],
   )
 
+  const updateAppointment = useCallback(
+    (id: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => {
+      const ap = appointments.map((x) => x.id === id ? { ...x, ...values } : x)
+      setAppointments(ap)
+      save(snap({ appointments: ap }))
+    },
+    [appointments, save, snap],
+  )
+
   // ── 福祉サービス事業者 ────────────────
 
   const addWelfareProvider = useCallback(
@@ -269,6 +311,15 @@ export const useHealth = (
     [welfareProviders, save, snap],
   )
 
+  const updateWelfareProvider = useCallback(
+    (id: string, values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => {
+      const wp = welfareProviders.map((x) => x.id === id ? { ...x, ...values } : x)
+      setWelfareProviders(wp)
+      save(snap({ welfareProviders: wp }))
+    },
+    [welfareProviders, save, snap],
+  )
+
   // ── 相談支援専門員 ────────────────────
 
   const addWelfareConsultant = useCallback(
@@ -283,6 +334,15 @@ export const useHealth = (
   const deleteWelfareConsultant = useCallback(
     (id: string) => {
       const wc = welfareConsultants.filter((x) => x.id !== id)
+      setWelfareConsultants(wc)
+      save(snap({ welfareConsultants: wc }))
+    },
+    [welfareConsultants, save, snap],
+  )
+
+  const updateWelfareConsultant = useCallback(
+    (id: string, values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => {
+      const wc = welfareConsultants.map((x) => x.id === id ? { ...x, ...values } : x)
       setWelfareConsultants(wc)
       save(snap({ welfareConsultants: wc }))
     },
@@ -327,15 +387,15 @@ export const useHealth = (
   )
 
   return {
-    addDoctor, deleteDoctor,
-    addAllergy, deleteAllergy,
-    addIllness, deleteIllness,
+    addDoctor, deleteDoctor, updateDoctor,
+    addAllergy, deleteAllergy, updateAllergy,
+    addIllness, deleteIllness, updateIllness,
     updateHealthMemo,
     upsertVaccineRecord,
     addCustomVaccine, deleteCustomVaccine,
-    addAppointment, deleteAppointment,
-    addWelfareProvider, deleteWelfareProvider,
-    addWelfareConsultant, deleteWelfareConsultant,
+    addAppointment, deleteAppointment, updateAppointment,
+    addWelfareProvider, deleteWelfareProvider, updateWelfareProvider,
+    addWelfareConsultant, deleteWelfareConsultant, updateWelfareConsultant,
     upsertDiagnosisInfo,
     getHealthByChildId,
   }

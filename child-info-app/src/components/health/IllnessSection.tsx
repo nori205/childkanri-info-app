@@ -3,7 +3,7 @@
 // ===========================
 
 import { useState } from 'react'
-import { Thermometer, Trash2, Plus, X, CalendarDays } from 'lucide-react'
+import { Thermometer, Trash2, Plus, X, CalendarDays, Pencil } from 'lucide-react'
 import Accordion from './Accordion'
 import type { Illness } from '../../types'
 
@@ -11,6 +11,7 @@ interface IllnessSectionProps {
   illnesses: Illness[]
   onAdd: (values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
   onDelete: (id: string) => void
+  onUpdate: (id: string, values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
 }
 
 const emptyForm = () => ({
@@ -28,8 +29,9 @@ const formatDate = (dateStr: string): string => {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`
 }
 
-const IllnessSection = ({ illnesses, onAdd, onDelete }: IllnessSectionProps) => {
+const IllnessSection = ({ illnesses, onAdd, onDelete, onUpdate }: IllnessSectionProps) => {
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
 
@@ -41,20 +43,46 @@ const IllnessSection = ({ illnesses, onAdd, onDelete }: IllnessSectionProps) => 
     if (name === 'name' && error) setError('')
   }
 
-  const handleAdd = () => {
+  const openNewForm = () => {
+    setEditingId(null)
+    setForm(emptyForm())
+    setError('')
+    setShowForm(true)
+  }
+
+  const openEditForm = (il: Illness) => {
+    setEditingId(il.id)
+    setForm({
+      name: il.name,
+      onsetDate: il.onsetDate,
+      recoveryDate: il.recoveryDate,
+      treatment: il.treatment,
+      memo: il.memo,
+    })
+    setError('')
+    setShowForm(true)
+  }
+
+  const handleSave = () => {
     if (!form.name.trim()) {
       setError('病名を入力してください')
       return
     }
-    onAdd({ ...form, name: form.name.trim() })
-    setForm(emptyForm)
+    if (editingId) {
+      onUpdate(editingId, { ...form, name: form.name.trim() })
+    } else {
+      onAdd({ ...form, name: form.name.trim() })
+    }
+    setForm(emptyForm())
     setShowForm(false)
+    setEditingId(null)
     setError('')
   }
 
   const handleCancel = () => {
-    setForm(emptyForm)
+    setForm(emptyForm())
     setShowForm(false)
+    setEditingId(null)
     setError('')
   }
 
@@ -102,6 +130,14 @@ const IllnessSection = ({ illnesses, onAdd, onDelete }: IllnessSectionProps) => 
                   <p className="text-xs text-dark-brown/60 mt-0.5">{il.memo}</p>
                 )}
               </div>
+              {/* 編集ボタン */}
+              <button
+                onClick={() => openEditForm(il)}
+                className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0"
+                aria-label="編集"
+              >
+                <Pencil size={14} />
+              </button>
               {/* 削除ボタン */}
               <button
                 onClick={() => onDelete(il.id)}
@@ -115,11 +151,13 @@ const IllnessSection = ({ illnesses, onAdd, onDelete }: IllnessSectionProps) => 
         </div>
       )}
 
-      {/* 追加フォーム */}
+      {/* 追加・編集フォーム */}
       {showForm ? (
         <div className="bg-white rounded-xl p-4 border border-pink-soft/60 space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-dark-brown">新規追加</p>
+            <p className="text-sm font-medium text-dark-brown">
+              {editingId ? '編集' : '新規追加'}
+            </p>
             <button
               onClick={handleCancel}
               className="text-rose-brown/50 hover:text-rose-brown"
@@ -193,16 +231,16 @@ const IllnessSection = ({ illnesses, onAdd, onDelete }: IllnessSectionProps) => 
               キャンセル
             </button>
             <button
-              onClick={handleAdd}
+              onClick={handleSave}
               className="flex-1 py-2 rounded-lg bg-pink-muted text-cream text-sm font-medium hover:opacity-90 transition-opacity"
             >
-              追加する
+              {editingId ? '保存する' : '追加する'}
             </button>
           </div>
         </div>
       ) : (
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openNewForm}
           className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl border border-dashed border-pink-muted/60 text-sm text-rose-brown hover:bg-pink-soft/30 transition-colors"
         >
           <Plus size={15} />
