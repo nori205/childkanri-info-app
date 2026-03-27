@@ -115,11 +115,12 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
           <CalendarDays size={17} className="text-rose-brown" />
           <h2 className="text-base font-semibold text-rose-brown">今後の予定</h2>
           <span className="text-sm font-bold text-rose-brown bg-pink-soft/70 px-2 py-0.5 rounded-full">{allEvents.length}件</span>
+          <span className={`flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${isOpen ? 'bg-rose-brown text-cream' : 'bg-pink-muted text-cream'}`}>
+            {isOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            {isOpen ? '閉じる' : '開く'}
+          </span>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-rose-brown/60">
-          <span className="text-xs text-rose-brown/60">{formatDateLabel(todayStr, todayStr)}</span>
-          {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-        </div>
+        <span className="text-xs text-rose-brown/60">{formatDateLabel(todayStr, todayStr)}</span>
       </button>
 
       {isOpen && <div className="space-y-3">
