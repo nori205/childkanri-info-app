@@ -69,30 +69,30 @@ const BackupSection = () => {
   }
 
   return (
-    <div className="bg-white border border-pink-soft/60 rounded-2xl px-4 py-3">
-      <p className="text-xs font-semibold text-dark-brown mb-0.5">データのバックアップ・復元</p>
-      <p className="text-xs text-rose-brown/70 mb-1">💾 データはこの端末にのみ保存されます。機種変更や故障に備えて、こまめにバックアップしましょう</p>
-      {showReminder && (
-        <p className="text-xs text-amber-600 mb-1">⚠️ しばらくバックアップしていません。今すぐ保存をおすすめします</p>
-      )}
-      <div className="flex gap-2 mt-2">
+    <div className="bg-white border border-pink-soft/60 rounded-xl px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-rose-brown/70 flex-1 leading-tight">
+          {showReminder
+            ? '⚠️ バックアップをおすすめします'
+            : '💾 データのバックアップ・復元'}
+        </span>
         <button
           onClick={handleExport}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
         >
-          <Download size={14} />
+          <Download size={12} />
           バックアップ
         </button>
         <button
           onClick={() => importRef.current?.click()}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-medium border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
         >
-          <Upload size={14} />
-          復元する
+          <Upload size={12} />
+          復元
         </button>
         <input ref={importRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
       </div>
-      {msg && <p className="text-xs text-center text-rose-brown mt-2">{msg}</p>}
+      {msg && <p className="text-xs text-center text-rose-brown mt-1">{msg}</p>}
     </div>
   )
 }

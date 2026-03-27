@@ -258,7 +258,10 @@ const App = () => {
       {/* メインコンテンツ */}
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
-        {/* ① 子供タブ（最上部・名前切り替え＋追加ボタン） */}
+        {/* ① バックアップ・復元（最上部） */}
+        <BackupSection />
+
+        {/* ② 子供タブ（名前切り替え＋追加ボタン） */}
         <section>
           {children.length === 0 ? (
             <EmptyState onAdd={() => setIsChildModalOpen(true)} />
@@ -285,7 +288,7 @@ const App = () => {
           )}
         </section>
 
-        {/* ② 全子供の予定まとめ（2週間） */}
+        {/* ③ 全子供の予定まとめ（2週間） */}
         {children.length > 0 && (
           <ScheduleView
             children={children}
@@ -293,9 +296,6 @@ const App = () => {
             appointments={allAppointments}
           />
         )}
-
-        {/* ③ バックアップ・復元 */}
-        <BackupSection />
 
         {/* 子供が選択されているときのみ表示するセクション群 */}
         {activeChild && (
