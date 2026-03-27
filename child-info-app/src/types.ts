@@ -31,6 +31,8 @@ export interface Child {
   grade: GradeType
   schoolName: string
   bloodType: BloodType
+  height: string         // 身長 cm（任意）
+  weight: string         // 体重 kg（任意）
   createdAt: string      // ISO形式
   updatedAt: string      // ISO形式
 }
@@ -42,6 +44,8 @@ export interface ChildFormValues {
   grade: GradeType
   schoolName: string
   bloodType: BloodType
+  height: string
+  weight: string
 }
 
 // 家族メンバー（複数登録可）
@@ -189,6 +193,38 @@ export interface CustomVaccine {
   createdAt: string
 }
 
+// ===========================
+// 福祉サービス・診断情報
+// ===========================
+
+// 福祉サービス事業者
+export interface WelfareProvider {
+  id: string
+  childId: string
+  name: string      // 事業者名
+  phone: string     // 電話番号
+  createdAt: string
+}
+
+// 相談支援専門員
+export interface WelfareConsultant {
+  id: string
+  childId: string
+  name: string      // 名前
+  office: string    // 事業所
+  phone: string     // 電話番号
+  createdAt: string
+}
+
+// 診断名・手帳情報（子供ごとに1レコード）
+export interface DiagnosisInfo {
+  childId: string
+  diagnosisName: string   // 診断名
+  hasHandbook: boolean    // 手帳あり/なし
+  handbookName: string    // 手帳名
+  updatedAt: string
+}
+
 // localStorageに保存するアプリ全体のデータ構造
 // ステップ②以降でフィールドを追加していく
 export interface AppData {
@@ -200,7 +236,10 @@ export interface AppData {
   allergies: Allergy[]      // ステップ③追加
   illnesses: Illness[]      // ステップ③追加
   healthMemos: HealthMemo[] // ステップ③追加
-  vaccineRecords: VaccineRecord[]  // ステップ④追加
-  customVaccines: CustomVaccine[]  // ステップ④追加
-  appointments: Appointment[]      // ステップ⑦追加
+  vaccineRecords: VaccineRecord[]        // ステップ④追加
+  customVaccines: CustomVaccine[]        // ステップ④追加
+  appointments: Appointment[]            // ステップ⑦追加
+  welfareProviders: WelfareProvider[]    // 福祉サービス事業者
+  welfareConsultants: WelfareConsultant[] // 相談支援専門員
+  diagnosisInfos: DiagnosisInfo[]        // 診断名・手帳
 }

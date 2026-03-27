@@ -9,13 +9,16 @@ import IllnessSection from './IllnessSection'
 import HealthMemoSection from './HealthMemoSection'
 import VaccineSection from './VaccineSection'
 import AppointmentSection from './AppointmentSection'
+import WelfareSection from './WelfareSection'
 import LicenseGate from '../LicenseGate'
 import type { ChildHealthData } from '../../hooks/useHealth'
-import type { Doctor, Allergy, Illness, CustomVaccine, VaccineType, Appointment } from '../../types'
+import type {
+  Doctor, Allergy, Illness, CustomVaccine, VaccineType, Appointment,
+  WelfareProvider, WelfareConsultant, DiagnosisInfo,
+} from '../../types'
 
 interface HealthSectionProps {
   health: ChildHealthData
-  // 無料・有料の制御
   isUnlocked: boolean
   onUnlockClick: () => void
   onAddDoctor: (values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
@@ -25,48 +28,42 @@ interface HealthSectionProps {
   onAddIllness: (values: Omit<Illness, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteIllness: (id: string) => void
   onSaveHealthMemo: (content: string) => void
-  // ワクチン（ステップ④追加）
   onUpsertVaccineRecord: (
-    vaccineName: string,
-    vaccineType: VaccineType,
-    vaccinationDate: string,
-    nextDate: string,
-    memo: string,
+    vaccineName: string, vaccineType: VaccineType,
+    vaccinationDate: string, nextDate: string, memo: string,
   ) => void
   onAddCustomVaccine: (values: Omit<CustomVaccine, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteCustomVaccine: (id: string) => void
-  // 通院・予約管理（ステップ⑦追加）
   onAddAppointment: (values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteAppointment: (id: string) => void
+  onAddWelfareProvider: (values: Omit<WelfareProvider, 'id' | 'childId' | 'createdAt'>) => void
+  onDeleteWelfareProvider: (id: string) => void
+  onAddWelfareConsultant: (values: Omit<WelfareConsultant, 'id' | 'childId' | 'createdAt'>) => void
+  onDeleteWelfareConsultant: (id: string) => void
+  onUpsertDiagnosis: (values: Omit<DiagnosisInfo, 'childId' | 'updatedAt'>) => void
 }
 
 const HealthSection = ({
-  health,
-  isUnlocked,
-  onUnlockClick,
-  onAddDoctor,
-  onDeleteDoctor,
-  onAddAllergy,
-  onDeleteAllergy,
-  onAddIllness,
-  onDeleteIllness,
+  health, isUnlocked, onUnlockClick,
+  onAddDoctor, onDeleteDoctor,
+  onAddAllergy, onDeleteAllergy,
+  onAddIllness, onDeleteIllness,
   onSaveHealthMemo,
-  onUpsertVaccineRecord,
-  onAddCustomVaccine,
-  onDeleteCustomVaccine,
-  onAddAppointment,
-  onDeleteAppointment,
+  onUpsertVaccineRecord, onAddCustomVaccine, onDeleteCustomVaccine,
+  onAddAppointment, onDeleteAppointment,
+  onAddWelfareProvider, onDeleteWelfareProvider,
+  onAddWelfareConsultant, onDeleteWelfareConsultant,
+  onUpsertDiagnosis,
 }: HealthSectionProps) => {
   return (
     <section>
-      {/* セクションタイトル */}
       <div className="flex items-center gap-2 mb-3">
         <HeartPulse size={17} className="text-rose-brown" />
         <h2 className="text-base font-semibold text-rose-brown">健康・医療情報</h2>
       </div>
 
       <div className="space-y-3">
-        {/* 有料機能（LicenseGateで囲む） */}
+        {/* 通院予約（上部） */}
         <LicenseGate
           isUnlocked={isUnlocked}
           onUnlockClick={onUnlockClick}
@@ -79,16 +76,31 @@ const HealthSection = ({
               onAdd={onAddAppointment}
               onDelete={onDeleteAppointment}
             />
+
+            {/* かかりつけ医 */}
+            <DoctorSection
+              doctors={health.doctors}
+              onAdd={onAddDoctor}
+              onDelete={onDeleteDoctor}
+              isUnlocked={isUnlocked}
+              onUnlockClick={onUnlockClick}
+            />
+
+            {/* 病歴 */}
             <IllnessSection
               illnesses={health.illnesses}
               onAdd={onAddIllness}
               onDelete={onDeleteIllness}
             />
+
+            {/* アレルギー */}
             <AllergySection
               allergies={health.allergies}
               onAdd={onAddAllergy}
               onDelete={onDeleteAllergy}
             />
+
+            {/* ワクチン */}
             <VaccineSection
               vaccineRecords={health.vaccineRecords}
               customVaccines={health.customVaccines}
@@ -96,21 +108,26 @@ const HealthSection = ({
               onAddCustom={onAddCustomVaccine}
               onDeleteCustom={onDeleteCustomVaccine}
             />
+
+            {/* 福祉サービス・診断情報 */}
+            <WelfareSection
+              welfareProviders={health.welfareProviders}
+              welfareConsultants={health.welfareConsultants}
+              diagnosisInfo={health.diagnosisInfo}
+              onAddProvider={onAddWelfareProvider}
+              onDeleteProvider={onDeleteWelfareProvider}
+              onAddConsultant={onAddWelfareConsultant}
+              onDeleteConsultant={onDeleteWelfareConsultant}
+              onUpsertDiagnosis={onUpsertDiagnosis}
+            />
+
+            {/* メモ */}
             <HealthMemoSection
               healthMemo={health.healthMemo}
               onSave={onSaveHealthMemo}
             />
           </div>
         </LicenseGate>
-
-        {/* かかりつけ医：2件まで無料 */}
-        <DoctorSection
-          doctors={health.doctors}
-          onAdd={onAddDoctor}
-          onDelete={onDeleteDoctor}
-          isUnlocked={isUnlocked}
-          onUnlockClick={onUnlockClick}
-        />
       </div>
     </section>
   )

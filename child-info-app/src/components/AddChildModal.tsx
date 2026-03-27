@@ -19,6 +19,8 @@ const initialValues: ChildFormValues = {
   grade: '未就学',
   schoolName: '',
   bloodType: '不明',
+  height: '',
+  weight: '',
 }
 
 const AddChildModal = ({ onClose, onAdd }: AddChildModalProps) => {
@@ -160,6 +162,32 @@ const AddChildModal = ({ onClose, onAdd }: AddChildModalProps) => {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* 身長・体重 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-dark-brown mb-1">身長（cm）</label>
+              <input
+                type="number"
+                name="height"
+                value={values.height}
+                onChange={handleChange}
+                placeholder="例：110"
+                className="w-full border border-pink-soft rounded-xl px-3 py-2 bg-white text-dark-brown placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-dark-brown mb-1">体重（kg）</label>
+              <input
+                type="number"
+                name="weight"
+                value={values.weight}
+                onChange={handleChange}
+                placeholder="例：18.5"
+                className="w-full border border-pink-soft rounded-xl px-3 py-2 bg-white text-dark-brown placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
+              />
+            </div>
           </div>
 
           {/* ボタン */}

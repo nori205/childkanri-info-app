@@ -2,7 +2,7 @@
 // 子供情報カードコンポーネント
 // ===========================
 
-import { Cake, School, Droplets, GraduationCap } from 'lucide-react'
+import { Cake, School, Droplets, GraduationCap, Ruler, Weight } from 'lucide-react'
 import type { Child } from '../types'
 
 interface ChildCardProps {
@@ -76,11 +76,33 @@ const ChildCard = ({ child }: ChildCardProps) => {
           <Droplets size={18} className="text-rose-brown flex-shrink-0" />
           <div>
             <p className="text-xs text-rose-brown">血液型</p>
-            <p className="text-sm font-medium text-dark-brown">
-              {child.bloodType}型
-            </p>
+            <p className="text-sm font-medium text-dark-brown">{child.bloodType}型</p>
           </div>
         </div>
+
+        {/* 身長・体重 */}
+        {(child.height || child.weight) && (
+          <div className="flex gap-4">
+            {child.height && (
+              <div className="flex items-center gap-3">
+                <Ruler size={18} className="text-rose-brown flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-rose-brown">身長</p>
+                  <p className="text-sm font-medium text-dark-brown">{child.height} cm</p>
+                </div>
+              </div>
+            )}
+            {child.weight && (
+              <div className="flex items-center gap-3">
+                <Weight size={18} className="text-rose-brown flex-shrink-0" />
+                <div>
+                  <p className="text-xs text-rose-brown">体重</p>
+                  <p className="text-sm font-medium text-dark-brown">{child.weight} kg</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

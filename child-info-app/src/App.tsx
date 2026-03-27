@@ -40,6 +40,9 @@ import type {
   VaccineType,
   CustomVaccine,
   Appointment,
+  WelfareProvider,
+  WelfareConsultant,
+  DiagnosisInfo,
 } from './types'
 import { STORAGE_KEY, DATA_VERSION, DEFAULT_FAMILY_INFO, FREE_CHILD_LIMIT } from './constants'
 import type { FamilyMember } from './types'
@@ -86,7 +89,10 @@ const loadAppData = (): AppData => {
       healthMemos: data.healthMemos ?? [],
       vaccineRecords: data.vaccineRecords ?? [],
       customVaccines: data.customVaccines ?? [],
-      appointments: data.appointments ?? [],    // ステップ⑦追加
+      appointments: data.appointments ?? [],
+      welfareProviders: data.welfareProviders ?? [],
+      welfareConsultants: data.welfareConsultants ?? [],
+      diagnosisInfos: data.diagnosisInfos ?? [],
     }
   } catch {
     return {
@@ -100,7 +106,10 @@ const loadAppData = (): AppData => {
       healthMemos: [],
       vaccineRecords: [],
       customVaccines: [],
-      appointments: [],                          // ステップ⑦追加
+      appointments: [],
+      welfareProviders: [],
+      welfareConsultants: [],
+      diagnosisInfos: [],
     }
   }
 }
@@ -153,7 +162,10 @@ const App = () => {
       healthMemos: HealthMemo[]
       vaccineRecords: VaccineRecord[]
       customVaccines: CustomVaccine[]
-      appointments: Appointment[]    // ステップ⑦追加
+      appointments: Appointment[]
+      welfareProviders: WelfareProvider[]
+      welfareConsultants: WelfareConsultant[]
+      diagnosisInfos: DiagnosisInfo[]
     }) => {
       const current = loadAppData()
       saveAppData({ ...current, ...data })
@@ -182,18 +194,16 @@ const App = () => {
   )
 
   const {
-    addDoctor,
-    deleteDoctor,
-    addAllergy,
-    deleteAllergy,
-    addIllness,
-    deleteIllness,
+    addDoctor, deleteDoctor,
+    addAllergy, deleteAllergy,
+    addIllness, deleteIllness,
     updateHealthMemo,
     upsertVaccineRecord,
-    addCustomVaccine,
-    deleteCustomVaccine,
-    addAppointment,      // ステップ⑦追加
-    deleteAppointment,   // ステップ⑦追加
+    addCustomVaccine, deleteCustomVaccine,
+    addAppointment, deleteAppointment,
+    addWelfareProvider, deleteWelfareProvider,
+    addWelfareConsultant, deleteWelfareConsultant,
+    upsertDiagnosisInfo,
     getHealthByChildId,
   } = useHealth(
     initialData.doctors,
@@ -202,7 +212,10 @@ const App = () => {
     initialData.healthMemos,
     initialData.vaccineRecords,
     initialData.customVaccines,
-    initialData.appointments,   // ステップ⑦追加
+    initialData.appointments,
+    initialData.welfareProviders,
+    initialData.welfareConsultants,
+    initialData.diagnosisInfos,
     handleSaveHealth,
   )
 
@@ -329,6 +342,11 @@ const App = () => {
                   onDeleteCustomVaccine={deleteCustomVaccine}
                   onAddAppointment={(v) => addAppointment(activeChild.id, v)}
                   onDeleteAppointment={deleteAppointment}
+                  onAddWelfareProvider={(v) => addWelfareProvider(activeChild.id, v)}
+                  onDeleteWelfareProvider={deleteWelfareProvider}
+                  onAddWelfareConsultant={(v) => addWelfareConsultant(activeChild.id, v)}
+                  onDeleteWelfareConsultant={deleteWelfareConsultant}
+                  onUpsertDiagnosis={(v) => upsertDiagnosisInfo(activeChild.id, v)}
                 />
               )}
             </section>
