@@ -53,6 +53,7 @@ type ScheduleEvent =
 
 const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
   const [showAll, setShowAll] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
 
   const now = new Date()
   const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -106,15 +107,22 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
 
   return (
     <section className="mb-2">
-      <div className="flex items-center justify-between mb-3">
+      <button
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="w-full flex items-center justify-between mb-3"
+      >
         <div className="flex items-center gap-2">
           <CalendarDays size={17} className="text-rose-brown" />
           <h2 className="text-base font-semibold text-rose-brown">今後の予定</h2>
+          <span className="text-xs text-rose-brown/60 bg-pink-soft/50 px-1.5 py-0.5 rounded-full">{allEvents.length}件</span>
         </div>
-        <span className="text-xs text-rose-brown/60">{formatDateLabel(todayStr, todayStr)}</span>
-      </div>
+        <div className="flex items-center gap-1.5 text-xs text-rose-brown/60">
+          <span className="text-xs text-rose-brown/60">{formatDateLabel(todayStr, todayStr)}</span>
+          {isOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </div>
+      </button>
 
-      <div className="space-y-3">
+      {isOpen && <div className="space-y-3">
         {Array.from(grouped.entries()).map(([date, events]) => (
           <div key={date} className="bg-white rounded-xl border border-pink-soft/60 overflow-hidden">
             {/* 日付ヘッダー */}
@@ -166,7 +174,7 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
             )}
           </button>
         )}
-      </div>
+      </div>}
     </section>
   )
 }
