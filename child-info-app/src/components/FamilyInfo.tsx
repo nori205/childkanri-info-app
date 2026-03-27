@@ -2,13 +2,9 @@
 // 家族共通情報コンポーネント（複数メンバー対応）
 // ===========================
 
-import { useState, useRef } from 'react'
-import { Users, Phone, MapPin, ChevronDown, ChevronUp, Save, Plus, Trash2, X, Download, Upload } from 'lucide-react'
+import { useState } from 'react'
+import { Users, Phone, MapPin, ChevronDown, ChevronUp, Save, Plus, Trash2, X } from 'lucide-react'
 import type { FamilyInfo as FamilyInfoType, FamilyMember } from '../types'
-import { STORAGE_KEY } from '../constants'
-
-// バックアップ日時のlocalStorageキー（App.tsxと共通）
-const BACKUP_LAST_KEY = 'child-info-app-last-backup'
 
 interface FamilyInfoProps {
   familyInfo: FamilyInfoType
@@ -19,60 +15,14 @@ interface FamilyInfoProps {
 const RELATIONSHIP_OPTIONS = ['父', '母', '祖父', '祖母', '兄', '姉', '弟', '妹', 'その他']
 
 // 新規メンバーフォームの初期値
-const emptyMemberForm = () => ({ name: '', relationship: '保護者', phone: '' })
+const emptyMemberForm = () => ({ name: '', relationship: '保護者', phone: '', isEmergency: false })
 
 const FamilyInfo = ({ familyInfo, onSave }: FamilyInfoProps) => {
-  // セクションの折りたたみ状態
-  const [isOpen, setIsOpen] = useState(false)
-  // ファイルインプットの参照
-  const importRef = useRef<HTMLInputElement>(null)
-  // バックアップ・復元のメッセージ
-  const [backupMsg, setBackupMsg] = useState('')
+  // セクションの折りたたみ状態（セッション中は維持）
+  const [isOpen, setIsOpen] = useState(() => {
+    return sessionStorage.getItem('familyInfo-open') === 'true'
+  })
 
-  // データをJSONファイルとしてダウンロード（バックアップ）
-  const handleExport = () => {
-    const data = localStorage.getItem(STORAGE_KEY)
-    if (!data) {
-      setBackupMsg('保存データがありません')
-      setTimeout(() => setBackupMsg(''), 3000)
-      return
-    }
-    const blob = new Blob([data], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    const date = new Date().toISOString().slice(0, 10)
-    a.download = `kodomemo-backup-${date}.json`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    // バックアップ日時を記録（リマインド判定に使用）
-    localStorage.setItem(BACKUP_LAST_KEY, String(Date.now()))
-    setBackupMsg('バックアップしました！')
-    setTimeout(() => setBackupMsg(''), 3000)
-  }
-
-  // JSONファイルからデータを復元
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      try {
-        const text = ev.target?.result as string
-        JSON.parse(text) // バリデーション
-        if (window.confirm('現在のデータをすべて置き換えますか？\nこの操作は元に戻せません。')) {
-          localStorage.setItem(STORAGE_KEY, text)
-          window.location.reload()
-        }
-      } catch {
-        alert('ファイルが正しくありません。\nこどめものバックアップファイルを選んでください。')
-      }
-    }
-    reader.readAsText(file)
-    e.target.value = ''
-  }
   // メンバー一覧（ローカル編集用）
   const [members, setMembers] = useState<FamilyMember[]>(familyInfo.members)
   // 住所
@@ -97,6 +47,7 @@ const FamilyInfo = ({ familyInfo, onSave }: FamilyInfoProps) => {
       name: memberForm.name.trim(),
       relationship: memberForm.relationship.trim() || 'その他',
       phone: memberForm.phone.trim(),
+      isEmergency: memberForm.isEmergency,
     }
     const updated = [...members, newMember]
     setMembers(updated)
@@ -120,26 +71,42 @@ const FamilyInfo = ({ familyInfo, onSave }: FamilyInfoProps) => {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  // ヘッダーに表示するメンバー名（最大3人）
+  const memberNames = members.slice(0, 3).map((m) => m.name).join('・')
+  const hasMoreMembers = members.length > 3
+
   return (
     <div className="bg-pink-soft rounded-2xl shadow-sm overflow-hidden">
       {/* セクションヘッダー（折りたたみ切り替え） */}
       <button
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => setIsOpen((v) => {
+          const next = !v
+          sessionStorage.setItem('familyInfo-open', String(next))
+          return next
+        })}
         className="w-full flex items-center justify-between px-5 py-4 text-left"
       >
-        <div className="flex items-center gap-2 text-dark-brown font-semibold">
-          <Users size={18} className="text-rose-brown" />
-          <span>家族の共通情報</span>
-          {members.length > 0 && (
-            <span className="text-xs bg-rose-brown/20 text-rose-brown px-2 py-0.5 rounded-full">
-              {members.length}人
-            </span>
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-2 text-dark-brown font-semibold">
+            <Users size={18} className="text-rose-brown" />
+            <span>家族の共通情報</span>
+            {members.length > 0 && (
+              <span className="text-xs bg-rose-brown/20 text-rose-brown px-2 py-0.5 rounded-full">
+                {members.length}人
+              </span>
+            )}
+          </div>
+          {/* 折りたたみ時にメンバー名を表示 */}
+          {!isOpen && members.length > 0 && (
+            <p className="text-xs text-dark-brown/60 pl-6">
+              {memberNames}{hasMoreMembers ? '…' : ''}
+            </p>
           )}
         </div>
         {isOpen ? (
-          <ChevronUp size={18} className="text-rose-brown" />
+          <ChevronUp size={18} className="text-rose-brown flex-shrink-0" />
         ) : (
-          <ChevronDown size={18} className="text-rose-brown" />
+          <ChevronDown size={18} className="text-rose-brown flex-shrink-0" />
         )}
       </button>
 
@@ -170,6 +137,12 @@ const FamilyInfo = ({ familyInfo, onSave }: FamilyInfoProps) => {
                     <span className="text-sm font-medium text-dark-brown flex-1 min-w-0 truncate">
                       {m.name}
                     </span>
+                    {/* 緊急連絡先バッジ */}
+                    {m.isEmergency && (
+                      <span className="text-xs bg-red-100 text-red-600 border border-red-200 px-2 py-0.5 rounded-md flex-shrink-0">
+                        緊急
+                      </span>
+                    )}
                     {/* 電話番号 */}
                     {m.phone && (
                       <span className="flex items-center gap-1 text-xs text-rose-brown/70 flex-shrink-0">
@@ -256,6 +229,18 @@ const FamilyInfo = ({ familyInfo, onSave }: FamilyInfoProps) => {
                   className="w-full border border-pink-soft rounded-lg px-3 py-2 bg-cream text-dark-brown text-sm placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
                 />
 
+                {/* 緊急連絡先チェックボックス */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={memberForm.isEmergency}
+                    onChange={(e) => setMemberForm((p) => ({ ...p, isEmergency: e.target.checked }))}
+                    className="w-4 h-4 rounded border-pink-soft text-rose-brown focus:ring-pink-muted"
+                  />
+                  <span className="text-sm text-dark-brown">緊急連絡先にする</span>
+                  <span className="text-xs bg-red-100 text-red-600 border border-red-200 px-2 py-0.5 rounded-md">緊急</span>
+                </label>
+
                 <div className="flex gap-2">
                   <button
                     onClick={() => { setShowAddForm(false); setMemberError('') }}
@@ -305,45 +290,6 @@ const FamilyInfo = ({ familyInfo, onSave }: FamilyInfoProps) => {
             <Save size={16} />
             {saved ? '保存しました！' : '住所を保存する'}
           </button>
-
-          {/* ── データのバックアップ・復元 ── */}
-          <div className="border-t border-pink-soft/60 pt-4">
-            <p className="text-xs font-semibold text-dark-brown mb-1 flex items-center gap-1.5">
-              データのバックアップ・復元
-            </p>
-            <p className="text-xs text-dark-brown/50 mb-3">
-              機種変更やデータ消失に備えて定期的にバックアップを保存しておきましょう
-            </p>
-            <div className="flex gap-2">
-              {/* バックアップ（エクスポート） */}
-              <button
-                onClick={handleExport}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
-              >
-                <Download size={15} />
-                バックアップ
-              </button>
-              {/* 復元（インポート） */}
-              <button
-                onClick={() => importRef.current?.click()}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-medium border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
-              >
-                <Upload size={15} />
-                復元する
-              </button>
-              <input
-                ref={importRef}
-                type="file"
-                accept=".json"
-                onChange={handleImport}
-                className="hidden"
-              />
-            </div>
-            {/* 結果メッセージ */}
-            {backupMsg && (
-              <p className="text-xs text-center text-rose-brown mt-2">{backupMsg}</p>
-            )}
-          </div>
         </div>
       )}
     </div>

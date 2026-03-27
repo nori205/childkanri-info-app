@@ -66,16 +66,7 @@ const HealthSection = ({
       </div>
 
       <div className="space-y-3">
-        {/* かかりつけ医：2件まで無料 */}
-        <DoctorSection
-          doctors={health.doctors}
-          onAdd={onAddDoctor}
-          onDelete={onDeleteDoctor}
-          isUnlocked={isUnlocked}
-          onUnlockClick={onUnlockClick}
-        />
-
-        {/* 以下は有料機能（LicenseGateで囲む） */}
+        {/* 有料機能（LicenseGateで囲む） */}
         <LicenseGate
           isUnlocked={isUnlocked}
           onUnlockClick={onUnlockClick}
@@ -88,15 +79,15 @@ const HealthSection = ({
               onAdd={onAddAppointment}
               onDelete={onDeleteAppointment}
             />
-            <AllergySection
-              allergies={health.allergies}
-              onAdd={onAddAllergy}
-              onDelete={onDeleteAllergy}
-            />
             <IllnessSection
               illnesses={health.illnesses}
               onAdd={onAddIllness}
               onDelete={onDeleteIllness}
+            />
+            <AllergySection
+              allergies={health.allergies}
+              onAdd={onAddAllergy}
+              onDelete={onDeleteAllergy}
             />
             <VaccineSection
               vaccineRecords={health.vaccineRecords}
@@ -111,6 +102,15 @@ const HealthSection = ({
             />
           </div>
         </LicenseGate>
+
+        {/* かかりつけ医：2件まで無料 */}
+        <DoctorSection
+          doctors={health.doctors}
+          onAdd={onAddDoctor}
+          onDelete={onDeleteDoctor}
+          isUnlocked={isUnlocked}
+          onUnlockClick={onUnlockClick}
+        />
       </div>
     </section>
   )

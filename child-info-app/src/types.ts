@@ -47,9 +47,10 @@ export interface ChildFormValues {
 // 家族メンバー（複数登録可）
 export interface FamilyMember {
   id: string
-  name: string          // 名前
-  relationship: string  // 続柄（父・母・祖父・祖母など）
-  phone: string         // 電話番号（任意）
+  name: string           // 名前
+  relationship: string   // 続柄（父・母・祖父・祖母など）
+  phone: string          // 電話番号（任意）
+  isEmergency?: boolean  // 緊急連絡先フラグ
 }
 
 // 家族共通情報

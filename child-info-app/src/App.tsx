@@ -2,10 +2,11 @@
 // アプリのルートコンポーネント
 // ===========================
 
-import { useState, useCallback, useEffect } from 'react'
-import { Plus } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { Plus, Trash2 } from 'lucide-react'
 import Header from './components/Header'
 import ChildTabs from './components/ChildTabs'
+import ChildCard from './components/ChildCard'
 import EmptyState from './components/EmptyState'
 import AddChildModal from './components/AddChildModal'
 import AddTaskModal from './components/AddTaskModal'
@@ -15,6 +16,7 @@ import TaskList from './components/TaskList'
 import FamilyInfo from './components/FamilyInfo'
 import HealthSection from './components/health/HealthSection'
 import SummarySection from './components/SummarySection'
+import BackupSection from './components/BackupSection'
 import LicenseGate, {
   LicenseBanner,
   UnlockModal,
@@ -41,11 +43,6 @@ import type {
 } from './types'
 import { STORAGE_KEY, DATA_VERSION, DEFAULT_FAMILY_INFO, FREE_CHILD_LIMIT } from './constants'
 import type { FamilyMember } from './types'
-
-// バックアップリマインドのlocalStorageキー
-const BACKUP_LAST_KEY = 'child-info-app-last-backup'
-// 何日経ったらリマインドするか
-const BACKUP_REMIND_DAYS = 7
 
 // localStorageからアプリデータを読み込む
 // ※ライセンスデータは別キー（LICENSE_STORAGE_KEY）で管理するためここには含まない
@@ -119,22 +116,9 @@ const App = () => {
   // ── モーダルの表示状態 ────────────────────────────
 
   const [isChildModalOpen, setIsChildModalOpen] = useState(false)
-  // バックアップリマインドバナーの表示状態
-  const [showBackupReminder, setShowBackupReminder] = useState(false)
-
-  // 起動時にバックアップリマインドを確認
-  useEffect(() => {
-    const last = localStorage.getItem(BACKUP_LAST_KEY)
-    if (!last) {
-      // 一度もバックアップしていない場合はデータがあれば表示
-      const hasData = !!localStorage.getItem(STORAGE_KEY)
-      if (hasData) setShowBackupReminder(true)
-      return
-    }
-    const daysSince = (Date.now() - Number(last)) / (1000 * 60 * 60 * 24)
-    if (daysSince >= BACKUP_REMIND_DAYS) setShowBackupReminder(true)
-  }, [])
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
+  // 子供削除確認（ChildCard下部の削除ボタン用）
+  const [confirmDeleteChildId, setConfirmDeleteChildId] = useState<string | null>(null)
   // 解除コード入力モーダル
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false)
   // 子供追加制限モーダル
@@ -254,29 +238,13 @@ const App = () => {
         onUnlockClick={() => setIsUnlockModalOpen(true)}
       />
 
-      {/* バックアップリマインドバナー */}
-      {showBackupReminder && (
-        <div className="bg-amber-50 border-b border-amber-200">
-          <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
-            <p className="text-xs text-amber-700">
-              💾 データのバックアップをお忘れなく！「家族の共通情報」からいつでも保存できます
-            </p>
-            <button
-              onClick={() => {
-                setShowBackupReminder(false)
-                localStorage.setItem(BACKUP_LAST_KEY, String(Date.now()))
-              }}
-              className="flex-shrink-0 text-xs text-amber-600 font-medium underline underline-offset-2 hover:opacity-70"
-            >
-              閉じる
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* メインコンテンツ */}
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* 全子供の予定まとめ */}
+
+        {/* ① バックアップ・復元（一番上） */}
+        <BackupSection />
+
+        {/* ② 全子供の予定まとめ（2週間） */}
         {children.length > 0 && (
           <ScheduleView
             children={children}
@@ -285,7 +253,7 @@ const App = () => {
           />
         )}
 
-        {/* 子供セクション */}
+        {/* ③ 子供タブ（名前切り替えのみ・カード非表示） */}
         <section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold text-rose-brown">子供の情報</h2>
@@ -300,7 +268,6 @@ const App = () => {
           </div>
 
           {children.length === 0 ? (
-            // 1人目は常に無料
             <EmptyState onAdd={() => setIsChildModalOpen(true)} />
           ) : (
             <ChildTabs
@@ -309,6 +276,7 @@ const App = () => {
               onTabChange={setActiveChildId}
               onAddChild={handleAddChildClick}
               onDeleteChild={deleteChild}
+              showCard={false}
             />
           )}
         </section>
@@ -316,12 +284,10 @@ const App = () => {
         {/* 子供が選択されているときのみ表示するセクション群 */}
         {activeChild && (
           <>
-            {/* タスク・お知らせセクション（無料機能） */}
+            {/* ④ タスク・お知らせ */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-rose-brown">
-                  タスク・お知らせ
-                </h2>
+                <h2 className="text-base font-semibold text-rose-brown">タスク・お知らせ</h2>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
                   className="flex items-center gap-1 text-sm bg-pink-muted text-cream px-3 py-1.5 rounded-full shadow hover:opacity-90 transition-opacity"
@@ -338,7 +304,7 @@ const App = () => {
               />
             </section>
 
-            {/* 健康・医療情報セクション（基本2件まで無料・ワクチン記録は有料） */}
+            {/* ⑤ 健康・医療情報（通院予約→病歴→アレルギー→ワクチン→メモ→かかりつけ医） */}
             <section>
               {activeHealth && (
                 <HealthSection
@@ -367,15 +333,35 @@ const App = () => {
               )}
             </section>
 
-            {/* 提出用サマリーセクション（有料機能） */}
+            {/* ⑥ 家族共通情報 */}
+            <section>
+              <FamilyInfo familyInfo={familyInfo} onSave={updateFamilyInfo} />
+            </section>
+
+            {/* ⑦ 子供の基本情報（名前・学校名など） */}
+            <section>
+              <h2 className="text-base font-semibold text-rose-brown mb-3">基本情報</h2>
+              <ChildCard child={activeChild} />
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => setConfirmDeleteChildId(activeChild.id)}
+                  className="flex items-center gap-1.5 text-sm text-rose-brown hover:text-dark-brown transition-colors px-3 py-1.5 rounded-lg hover:bg-pink-soft/40"
+                >
+                  <Trash2 size={15} />
+                  この子を削除
+                </button>
+              </div>
+            </section>
+
+            {/* ⑧ プリントして保管（提出用サマリー・有料機能・一番下） */}
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-rose-brown">提出用サマリー</h2>
+                <h2 className="text-base font-semibold text-rose-brown">プリントして保管はここから</h2>
               </div>
               <LicenseGate
                 isUnlocked={isUnlocked}
                 onUnlockClick={() => setIsUnlockModalOpen(true)}
-                featureName="提出用サマリー"
+                featureName="プリントして保管"
                 featureDescription="子供の情報を1枚にまとめてコピーできます。学校・病院への提出に便利です"
               >
                 {activeHealth && (
@@ -394,12 +380,36 @@ const App = () => {
             </section>
           </>
         )}
-
-        {/* 家族共通情報セクション */}
-        <section>
-          <FamilyInfo familyInfo={familyInfo} onSave={updateFamilyInfo} />
-        </section>
       </main>
+
+      {/* 子供削除確認ダイアログ */}
+      {confirmDeleteChildId && (
+        <div
+          className="fixed inset-0 bg-dark-brown/40 flex items-center justify-center z-50 px-4"
+          onClick={(e) => e.target === e.currentTarget && setConfirmDeleteChildId(null)}
+        >
+          <div className="bg-cream rounded-2xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-bold text-dark-brown mb-2">本当に削除しますか？</h3>
+            <p className="text-sm text-rose-brown mb-6">
+              「{children.find((c) => c.id === confirmDeleteChildId)?.name}」の情報をすべて削除します。この操作は元に戻せません。
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteChildId(null)}
+                className="flex-1 border border-pink-soft text-rose-brown py-2.5 rounded-xl font-medium hover:bg-pink-soft/30 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={() => { deleteChild(confirmDeleteChildId); setConfirmDeleteChildId(null) }}
+                className="flex-1 bg-rose-brown text-cream py-2.5 rounded-xl font-medium shadow hover:opacity-90 transition-opacity"
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── モーダル群 ── */}
 

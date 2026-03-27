@@ -13,6 +13,7 @@ interface ChildTabsProps {
   onTabChange: (id: string) => void
   onAddChild: () => void
   onDeleteChild: (id: string) => void
+  showCard?: boolean  // falseのときはChildCardを表示しない（デフォルトtrue）
 }
 
 const ChildTabs = ({
@@ -21,6 +22,7 @@ const ChildTabs = ({
   onTabChange,
   onAddChild,
   onDeleteChild,
+  showCard = true,
 }: ChildTabsProps) => {
   // 削除確認ダイアログの表示対象
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -68,8 +70,8 @@ const ChildTabs = ({
         </button>
       </div>
 
-      {/* アクティブな子供の情報カード */}
-      {activeChild && (
+      {/* アクティブな子供の情報カード（showCard=trueのときのみ表示） */}
+      {showCard && activeChild && (
         <div className="mt-4">
           <ChildCard child={activeChild} />
 

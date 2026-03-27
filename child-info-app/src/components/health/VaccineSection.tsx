@@ -20,6 +20,7 @@ import {
   SCHEDULED_VACCINES,
   OPTIONAL_VACCINES,
   VACCINE_WARN_DAYS,
+  VACCINE_HINTS,
 } from '../../constants'
 
 // ── 型定義 ────────────────────────────────────────────────
@@ -149,6 +150,12 @@ const VaccineRow = ({ name, vaccineType, record, onSave }: VaccineRowProps) => {
       {/* 編集フォーム（展開時） */}
       {isOpen && (
         <div className="px-3 pb-3 pt-2 bg-cream/40 border-t border-pink-soft/40 space-y-2">
+          {/* 推奨時期ヒント */}
+          {VACCINE_HINTS[name] && (
+            <p className="text-xs text-rose-brown/70 bg-white rounded-lg px-3 py-2 border border-pink-soft/40">
+              📅 {VACCINE_HINTS[name]}
+            </p>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <p className="text-xs text-rose-brown mb-1">接種日</p>
