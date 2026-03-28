@@ -3,8 +3,15 @@
 // ===========================
 
 import { useRef, useState, useEffect } from 'react'
-import { Download, Upload } from 'lucide-react'
+import { Download, Upload, Share2 } from 'lucide-react'
 import { STORAGE_KEY } from '../constants'
+
+// JSON文字列をbase64urlエンコード（Unicode対応）
+const encodeData = (json: string): string => {
+  const bytes = new TextEncoder().encode(json)
+  const binStr = Array.from(bytes, (b) => String.fromCharCode(b)).join('')
+  return btoa(binStr)
+}
 
 const BACKUP_LAST_KEY = 'child-info-app-last-backup'
 const BACKUP_REMIND_DAYS = 7
@@ -48,6 +55,28 @@ const BackupSection = () => {
     setTimeout(() => setMsg(''), 3000)
   }
 
+  const handleShare = async () => {
+    const data = localStorage.getItem(STORAGE_KEY)
+    if (!data) {
+      setMsg('保存データがありません')
+      setTimeout(() => setMsg(''), 3000)
+      return
+    }
+    const encoded = encodeData(data)
+    const url = `${window.location.origin}${window.location.pathname}?import=${encoded}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'こどめも データ共有', url })
+      } catch {
+        // キャンセルは無視
+      }
+    } else {
+      await navigator.clipboard.writeText(url)
+      setMsg('URLをコピーしました！')
+      setTimeout(() => setMsg(''), 3000)
+    }
+  }
+
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
@@ -76,6 +105,13 @@ const BackupSection = () => {
             ? '⚠️ バックアップをおすすめします'
             : '💾 データのバックアップ・復元'}
         </span>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-blue-300 bg-white text-blue-600 hover:bg-blue-50 transition-colors"
+        >
+          <Share2 size={12} />
+          URLで共有
+        </button>
         <button
           onClick={handleExport}
           className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
