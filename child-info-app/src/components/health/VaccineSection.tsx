@@ -1,5 +1,6 @@
 // ===========================
 // ワクチン記録セクション
+// 複数回接種（doses）に対応
 // ===========================
 
 import { useState } from 'react'
@@ -13,9 +14,10 @@ import {
   Plus,
   Trash2,
   X,
+  Check,
 } from 'lucide-react'
 import Accordion from './Accordion'
-import type { VaccineRecord, CustomVaccine, VaccineType } from '../../types'
+import type { VaccineRecord, CustomVaccine, VaccineDose, VaccineType } from '../../types'
 import {
   SCHEDULED_VACCINES,
   OPTIONAL_VACCINES,
@@ -34,6 +36,7 @@ interface VaccineSectionProps {
     vaccinationDate: string,
     nextDate: string,
     memo: string,
+    doses: VaccineDose[],
   ) => void
   onAddCustom: (values: Omit<CustomVaccine, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteCustom: (id: string) => void
@@ -68,43 +71,95 @@ const isNextDateWarning = (nextDate: string): boolean => {
   return nextDate >= t && nextDate <= limit
 }
 
+// ユニークID生成（コンポーネント内で使用）
+const genId = (): string => `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
+
 // ── 定期・任意ワクチン行コンポーネント ────────────────────
 
 interface VaccineRowProps {
   name: string
   vaccineType: VaccineType
   record: VaccineRecord | undefined
-  onSave: (vaccinationDate: string, nextDate: string, memo: string) => void
+  onSave: (
+    vaccinationDate: string,
+    nextDate: string,
+    memo: string,
+    doses: VaccineDose[],
+  ) => void
 }
 
 const VaccineRow = ({ name, vaccineType, record, onSave }: VaccineRowProps) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [form, setForm] = useState({
-    vaccinationDate: record?.vaccinationDate ?? '',
-    nextDate: record?.nextDate ?? '',
-    memo: record?.memo ?? '',
-  })
 
-  const isVaccinated = !!record?.vaccinationDate
-  const nextWarning = record?.nextDate ? isNextDateWarning(record.nextDate) : false
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name: field, value } = e.target
-    setForm((prev) => ({ ...prev, [field]: value }))
+  // doses の初期値：
+  // - record.doses があればそれを使う
+  // - 旧フォーマット（vaccinationDate のみ）は doses 1件に変換
+  // - それ以外は空配列
+  const initDoses = (): VaccineDose[] => {
+    if (record?.doses && record.doses.length > 0) return record.doses
+    if (record?.vaccinationDate) {
+      return [{ id: `legacy-${record.vaccinationDate}`, label: '接種', date: record.vaccinationDate }]
+    }
+    return []
   }
 
+  const [doses, setDoses] = useState<VaccineDose[]>(initDoses)
+  const [nextDate, setNextDate] = useState(record?.nextDate ?? '')
+  const [memo, setMemo] = useState(record?.memo ?? '')
+
+  // 新しい回数の入力状態
+  const [isAddingDose, setIsAddingDose] = useState(false)
+  const [newLabel, setNewLabel] = useState('')
+  const [newDate, setNewDate] = useState('')
+  const [newDateError, setNewDateError] = useState('')
+
+  const isVaccinated = doses.length > 0
+  const lastDose = doses[doses.length - 1]
+  const nextWarning = nextDate ? isNextDateWarning(nextDate) : false
+
+  // 回数追加の確定
+  const handleAddDose = () => {
+    if (!newDate) {
+      setNewDateError('日付を入力してください')
+      return
+    }
+    const label = newLabel.trim() || `${doses.length + 1}回目`
+    setDoses((prev) => [...prev, { id: genId(), label, date: newDate }])
+    setNewLabel('')
+    setNewDate('')
+    setNewDateError('')
+    setIsAddingDose(false)
+  }
+
+  // 回数追加のキャンセル
+  const handleCancelAddDose = () => {
+    setNewLabel('')
+    setNewDate('')
+    setNewDateError('')
+    setIsAddingDose(false)
+  }
+
+  // 回数削除
+  const handleDeleteDose = (id: string) => {
+    setDoses((prev) => prev.filter((d) => d.id !== id))
+  }
+
+  // 保存：vaccinationDate は doses 最終回の日付（後方互換）
   const handleSave = () => {
-    onSave(form.vaccinationDate, form.nextDate, form.memo)
+    const lastDoseDate = doses.length > 0 ? doses[doses.length - 1].date : ''
+    onSave(lastDoseDate, nextDate, memo, doses)
     setIsOpen(false)
   }
 
+  // キャンセル：フォームを保存済みの値に戻す
   const handleCancel = () => {
-    // 保存済みの値に戻す
-    setForm({
-      vaccinationDate: record?.vaccinationDate ?? '',
-      nextDate: record?.nextDate ?? '',
-      memo: record?.memo ?? '',
-    })
+    setDoses(initDoses())
+    setNextDate(record?.nextDate ?? '')
+    setMemo(record?.memo ?? '')
+    setIsAddingDose(false)
+    setNewLabel('')
+    setNewDate('')
+    setNewDateError('')
     setIsOpen(false)
   }
 
@@ -127,15 +182,18 @@ const VaccineRow = ({ name, vaccineType, record, onSave }: VaccineRowProps) => {
           {name}
         </span>
 
-        {/* 接種日 or 次回予定 */}
+        {/* 接種状況 */}
         <div className="text-right flex-shrink-0">
-          {isVaccinated && record?.vaccinationDate && (
-            <p className="text-xs text-rose-brown/70">{formatDate(record.vaccinationDate)}</p>
+          {isVaccinated && doses.length > 1 && (
+            <p className="text-xs text-pink-muted font-medium">{doses.length}回接種済</p>
           )}
-          {record?.nextDate && (
+          {isVaccinated && doses.length === 1 && lastDose && (
+            <p className="text-xs text-rose-brown/70">{formatDate(lastDose.date)}</p>
+          )}
+          {nextDate && (
             <p className={`text-xs font-medium flex items-center gap-0.5 justify-end ${nextWarning ? 'text-orange-500' : 'text-rose-brown/50'}`}>
               {nextWarning && <Clock size={10} />}
-              次: {formatDate(record.nextDate)}
+              次: {formatDate(nextDate)}
             </p>
           )}
         </div>
@@ -149,43 +207,116 @@ const VaccineRow = ({ name, vaccineType, record, onSave }: VaccineRowProps) => {
 
       {/* 編集フォーム（展開時） */}
       {isOpen && (
-        <div className="px-3 pb-3 pt-2 bg-cream/40 border-t border-pink-soft/40 space-y-2">
+        <div className="px-3 pb-3 pt-2 bg-cream/40 border-t border-pink-soft/40 space-y-3">
           {/* 推奨時期ヒント */}
           {VACCINE_HINTS[name] && (
             <p className="text-xs text-rose-brown/70 bg-white rounded-lg px-3 py-2 border border-pink-soft/40">
               📅 {VACCINE_HINTS[name]}
             </p>
           )}
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <p className="text-xs text-rose-brown mb-1">接種日</p>
-              <input
-                type="date"
-                name="vaccinationDate"
-                value={form.vaccinationDate}
-                onChange={handleChange}
-                className="w-full border border-pink-soft rounded-lg px-2 py-1.5 bg-white text-dark-brown text-xs focus:outline-none focus:ring-2 focus:ring-pink-muted"
-              />
-            </div>
-            <div>
-              <p className="text-xs text-rose-brown mb-1">次回予定日</p>
-              <input
-                type="date"
-                name="nextDate"
-                value={form.nextDate}
-                onChange={handleChange}
-                className="w-full border border-pink-soft rounded-lg px-2 py-1.5 bg-white text-dark-brown text-xs focus:outline-none focus:ring-2 focus:ring-pink-muted"
-              />
-            </div>
+
+          {/* 接種記録（複数回） */}
+          <div>
+            <p className="text-xs text-rose-brown mb-1.5 font-medium">接種記録</p>
+
+            {/* 登録済みの回数一覧 */}
+            {doses.length > 0 && (
+              <div className="space-y-1 mb-2">
+                {doses.map((dose) => (
+                  <div key={dose.id} className="flex items-center gap-2 bg-white rounded-lg px-2 py-1.5 border border-pink-soft/40">
+                    {/* 種類ラベル */}
+                    <span className="text-xs bg-cream text-rose-brown/70 px-1.5 py-0.5 rounded flex-shrink-0 min-w-[3rem] text-center">
+                      {dose.label}
+                    </span>
+                    {/* 接種日 */}
+                    <span className="flex-1 text-xs text-dark-brown">{formatDate(dose.date)}</span>
+                    {/* 削除ボタン */}
+                    <button
+                      onClick={() => handleDeleteDose(dose.id)}
+                      className="text-rose-brown/30 hover:text-rose-brown transition-colors flex-shrink-0"
+                      aria-label="削除"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* 新しい回数の入力フォーム */}
+            {isAddingDose ? (
+              <div className="bg-white rounded-lg border border-pink-soft/40 p-2 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  {/* 種類入力（自由記述：1回目・追加など） */}
+                  <input
+                    type="text"
+                    value={newLabel}
+                    onChange={(e) => setNewLabel(e.target.value)}
+                    placeholder={`${doses.length + 1}回目`}
+                    className="w-20 border border-pink-soft rounded-md px-2 py-1 bg-cream text-dark-brown text-xs placeholder-rose-brown/40 focus:outline-none focus:ring-1 focus:ring-pink-muted"
+                  />
+                  {/* 接種日 */}
+                  <input
+                    type="date"
+                    value={newDate}
+                    onChange={(e) => { setNewDate(e.target.value); setNewDateError('') }}
+                    className="flex-1 border border-pink-soft rounded-md px-2 py-1 bg-cream text-dark-brown text-xs focus:outline-none focus:ring-1 focus:ring-pink-muted"
+                  />
+                </div>
+                {newDateError && <p className="text-red-400 text-xs">{newDateError}</p>}
+                <div className="flex gap-1.5">
+                  <button
+                    onClick={handleAddDose}
+                    className="flex items-center gap-1 text-xs bg-pink-muted text-cream px-2.5 py-1 rounded-md hover:opacity-90 transition-opacity"
+                  >
+                    <Check size={11} />
+                    追加
+                  </button>
+                  <button
+                    onClick={handleCancelAddDose}
+                    className="flex items-center gap-1 text-xs text-rose-brown/60 hover:text-rose-brown transition-colors px-1.5"
+                  >
+                    <X size={11} />
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* 「＋ 回数を追加」ボタン */
+              <button
+                onClick={() => {
+                  setNewLabel(`${doses.length + 1}回目`)
+                  setIsAddingDose(true)
+                }}
+                className="flex items-center gap-1 text-xs text-rose-brown/60 hover:text-rose-brown transition-colors py-1"
+              >
+                <Plus size={12} />
+                回数を追加
+              </button>
+            )}
           </div>
+
+          {/* 次回予定日 */}
+          <div>
+            <p className="text-xs text-rose-brown mb-1">次回予定日</p>
+            <input
+              type="date"
+              value={nextDate}
+              onChange={(e) => setNextDate(e.target.value)}
+              className="w-full border border-pink-soft rounded-lg px-2 py-1.5 bg-white text-dark-brown text-xs focus:outline-none focus:ring-2 focus:ring-pink-muted"
+            />
+          </div>
+
+          {/* メモ */}
           <input
             type="text"
-            name="memo"
-            value={form.memo}
-            onChange={handleChange}
+            value={memo}
+            onChange={(e) => setMemo(e.target.value)}
             placeholder="メモ（任意）"
             className="w-full border border-pink-soft rounded-lg px-2 py-1.5 bg-white text-dark-brown text-xs placeholder-rose-brown/40 focus:outline-none focus:ring-2 focus:ring-pink-muted"
           />
+
+          {/* ボタン */}
           <div className="flex gap-2">
             <button
               onClick={handleCancel}
@@ -392,7 +523,7 @@ const VaccineSection = ({
 
   // 接種済み合計（バッジ表示用）
   const vaccinatedCount =
-    vaccineRecords.filter((r) => r.vaccinationDate).length +
+    vaccineRecords.filter((r) => r.vaccinationDate || r.doses.length > 0).length +
     customVaccines.filter((cv) => cv.vaccinationDate).length
 
   // タブの設定
@@ -428,7 +559,10 @@ const VaccineSection = ({
             {/* 定期・任意タブに接種済み件数を表示 */}
             {tab.key !== 'custom' && (() => {
               const master = tab.key === 'scheduled' ? SCHEDULED_VACCINES : OPTIONAL_VACCINES
-              const cnt = master.filter((n) => getRecord(n)?.vaccinationDate).length
+              const cnt = master.filter((n) => {
+                const r = getRecord(n)
+                return r?.vaccinationDate || (r?.doses && r.doses.length > 0)
+              }).length
               return cnt > 0
                 ? <span className="ml-1 opacity-80">({cnt}/{master.length})</span>
                 : null
@@ -449,7 +583,7 @@ const VaccineSection = ({
               name={name}
               vaccineType="scheduled"
               record={getRecord(name)}
-              onSave={(vd, nd, memo) => onUpsertRecord(name, 'scheduled', vd, nd, memo)}
+              onSave={(vd, nd, memo, doses) => onUpsertRecord(name, 'scheduled', vd, nd, memo, doses)}
             />
           ))}
         </div>
@@ -464,7 +598,7 @@ const VaccineSection = ({
               name={name}
               vaccineType="optional"
               record={getRecord(name)}
-              onSave={(vd, nd, memo) => onUpsertRecord(name, 'optional', vd, nd, memo)}
+              onSave={(vd, nd, memo, doses) => onUpsertRecord(name, 'optional', vd, nd, memo, doses)}
             />
           ))}
         </div>

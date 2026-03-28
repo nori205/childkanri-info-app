@@ -13,7 +13,7 @@ import WelfareSection from './WelfareSection'
 import LicenseGate from '../LicenseGate'
 import type { ChildHealthData } from '../../hooks/useHealth'
 import type {
-  Doctor, Allergy, Illness, CustomVaccine, VaccineType, Appointment,
+  Doctor, Allergy, Illness, CustomVaccine, VaccineDose, VaccineType, Appointment,
   WelfareProvider, WelfareConsultant, DiagnosisInfo,
 } from '../../types'
 
@@ -34,6 +34,7 @@ interface HealthSectionProps {
   onUpsertVaccineRecord: (
     vaccineName: string, vaccineType: VaccineType,
     vaccinationDate: string, nextDate: string, memo: string,
+    doses: VaccineDose[],
   ) => void
   onAddCustomVaccine: (values: Omit<CustomVaccine, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteCustomVaccine: (id: string) => void

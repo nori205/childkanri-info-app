@@ -39,6 +39,7 @@ import type {
   Illness,
   HealthMemo,
   VaccineRecord,
+  VaccineDose,
   VaccineType,
   CustomVaccine,
   Appointment,
@@ -96,7 +97,11 @@ const loadAppData = (): AppData => {
       allergies: data.allergies ?? [],
       illnesses: data.illnesses ?? [],
       healthMemos: data.healthMemos ?? [],
-      vaccineRecords: data.vaccineRecords ?? [],
+      // 旧フォーマット（doses フィールドなし）に doses: [] を補完
+      vaccineRecords: ((data.vaccineRecords ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
+        ...r,
+        doses: (r.doses as VaccineDose[] | undefined) ?? [],
+      })) as VaccineRecord[],
       customVaccines: data.customVaccines ?? [],
       appointments: data.appointments ?? [],
       welfareProviders: data.welfareProviders ?? [],
@@ -384,7 +389,8 @@ const App = () => {
                     vd: string,
                     nd: string,
                     memo: string,
-                  ) => upsertVaccineRecord(activeChild.id, name, type, vd, nd, memo)}
+                    doses: VaccineDose[],
+                  ) => upsertVaccineRecord(activeChild.id, name, type, vd, nd, memo, doses)}
                   onAddCustomVaccine={(v) => addCustomVaccine(activeChild.id, v)}
                   onDeleteCustomVaccine={deleteCustomVaccine}
                   onAddAppointment={(v) => addAppointment(activeChild.id, v)}

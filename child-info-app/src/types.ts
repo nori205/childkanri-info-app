@@ -187,15 +187,23 @@ export interface Appointment {
 // ワクチン種別（定期 / 任意）
 export type VaccineType = 'scheduled' | 'optional'
 
+// 1回分の接種記録
+export interface VaccineDose {
+  id: string
+  label: string   // "1回目" / "2回目" / "追加1回" など自由入力
+  date: string    // 接種日 YYYY-MM-DD
+}
+
 // 定期・任意接種の記録（子供 × ワクチン名で1レコード）
 export interface VaccineRecord {
   id: string
   childId: string
   vaccineName: string       // マスタのワクチン名
   vaccineType: VaccineType
-  vaccinationDate: string   // 接種日 YYYY-MM-DD（空文字＝未接種）
+  vaccinationDate: string   // 後方互換用・doses最終回の日付（空文字＝未接種）
   nextDate: string          // 次回予定日 YYYY-MM-DD（任意）
   memo: string
+  doses: VaccineDose[]      // 複数回接種の詳細記録（空配列 = 旧フォーマット）
   updatedAt: string
 }
 

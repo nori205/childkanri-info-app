@@ -9,6 +9,7 @@ import type {
   Illness,
   HealthMemo,
   VaccineRecord,
+  VaccineDose,
   VaccineType,
   CustomVaccine,
   Appointment,
@@ -63,6 +64,7 @@ interface UseHealthReturn {
     vaccinationDate: string,
     nextDate: string,
     memo: string,
+    doses: VaccineDose[],
   ) => void
   addCustomVaccine: (childId: string, values: Omit<CustomVaccine, 'id' | 'childId' | 'createdAt'>) => void
   deleteCustomVaccine: (id: string) => void
@@ -228,16 +230,16 @@ export const useHealth = (
   // ── ワクチン記録 ──────────────────────
 
   const upsertVaccineRecord = useCallback(
-    (childId: string, vaccineName: string, vaccineType: VaccineType, vaccinationDate: string, nextDate: string, memo: string) => {
+    (childId: string, vaccineName: string, vaccineType: VaccineType, vaccinationDate: string, nextDate: string, memo: string, doses: VaccineDose[]) => {
       const now = new Date().toISOString()
       const exists = vaccineRecords.find((r) => r.childId === childId && r.vaccineName === vaccineName)
       const vr = exists
         ? vaccineRecords.map((r) =>
             r.childId === childId && r.vaccineName === vaccineName
-              ? { ...r, vaccinationDate, nextDate, memo, updatedAt: now }
+              ? { ...r, vaccinationDate, nextDate, memo, doses, updatedAt: now }
               : r,
           )
-        : [...vaccineRecords, { id: generateId(), childId, vaccineName, vaccineType, vaccinationDate, nextDate, memo, updatedAt: now }]
+        : [...vaccineRecords, { id: generateId(), childId, vaccineName, vaccineType, vaccinationDate, nextDate, memo, doses, updatedAt: now }]
       setVaccineRecords(vr)
       save(snap({ vaccineRecords: vr }))
     },
