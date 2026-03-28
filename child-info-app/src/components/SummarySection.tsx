@@ -5,6 +5,8 @@
 import { useState } from 'react'
 import { FileText, ClipboardCopy, Check, User, ShieldAlert, Stethoscope, Thermometer, Syringe, Phone, Lightbulb, Printer } from 'lucide-react'
 import Accordion from './health/Accordion'
+import PrintSummary from './PrintSummary'
+import '../styles/print.css'
 import type {
   Child,
   Allergy,
@@ -14,6 +16,9 @@ import type {
   CustomVaccine,
   HealthMemo,
   FamilyInfo,
+  WelfareProvider,
+  WelfareConsultant,
+  DiagnosisInfo,
 } from '../types'
 
 // ── プロップス ─────────────────────────────────────────
@@ -27,6 +32,9 @@ interface SummarySectionProps {
   customVaccines: CustomVaccine[]
   healthMemo: HealthMemo | null
   familyInfo: FamilyInfo
+  welfareProviders: WelfareProvider[]
+  welfareConsultants: WelfareConsultant[]
+  diagnosisInfo: DiagnosisInfo | null
 }
 
 // ── ユーティリティ ─────────────────────────────────────
@@ -56,6 +64,7 @@ const buildSummaryText = (props: SummarySectionProps): string => {
     customVaccines,
     healthMemo,
     familyInfo,
+    diagnosisInfo,
   } = props
 
   const lines: string[] = []
@@ -149,6 +158,41 @@ const buildSummaryText = (props: SummarySectionProps): string => {
   if (familyInfo.address) lines.push(`住所：${familyInfo.address}`)
   lines.push('')
 
+  // 【診断・手帳】（データがある場合のみ）
+  const hasDiagnosis = diagnosisInfo?.diagnosisName || diagnosisInfo?.hasHandbook
+  if (hasDiagnosis) {
+    lines.push('【診断・手帳】')
+    if (diagnosisInfo?.diagnosisName) lines.push(`診断名：${diagnosisInfo.diagnosisName}`)
+    if (diagnosisInfo?.hasHandbook) {
+      const hb = diagnosisInfo.handbookName ? `（${diagnosisInfo.handbookName}）` : ''
+      lines.push(`手帳：あり${hb}`)
+    }
+    lines.push('')
+  }
+
+  // 【福祉サービス事業者】（データがある場合のみ）
+  if (props.welfareProviders.length > 0) {
+    lines.push('【福祉サービス事業者】')
+    props.welfareProviders.forEach((wp) => {
+      let line = `・${wp.name}`
+      if (wp.phone) line += `　${wp.phone}`
+      lines.push(line)
+    })
+    lines.push('')
+  }
+
+  // 【相談支援専門員】（データがある場合のみ）
+  if (props.welfareConsultants.length > 0) {
+    lines.push('【相談支援専門員】')
+    props.welfareConsultants.forEach((wc) => {
+      let line = `・${wc.name}`
+      if (wc.office) line += `（${wc.office}）`
+      if (wc.phone) line += `　${wc.phone}`
+      lines.push(line)
+    })
+    lines.push('')
+  }
+
   // 【気づきメモ】
   lines.push('【気づきメモ】')
   lines.push(healthMemo?.content?.trim() || 'なし')
@@ -191,53 +235,16 @@ const SummarySection = (props: SummarySectionProps) => {
     customVaccines,
     healthMemo,
     familyInfo,
+    welfareProviders,
+    welfareConsultants,
+    diagnosisInfo,
   } = props
 
   const [copied, setCopied] = useState(false)
 
-  // 印刷する（ポップアップを使わず現ページで印刷）
+  // 印刷する（PrintSummary コンポーネントが portal で body に描画済み）
   const handlePrint = () => {
-    const text = buildSummaryText(props)
-
-    // 既存の印刷用要素があれば削除
-    const existing = document.getElementById('kodome-print-area')
-    if (existing) existing.remove()
-    const existingStyle = document.getElementById('kodome-print-style')
-    if (existingStyle) existingStyle.remove()
-
-    // 印刷用スタイル（印刷時はアプリ本体を非表示にして印刷エリアだけ表示）
-    const style = document.createElement('style')
-    style.id = 'kodome-print-style'
-    style.textContent = `
-      @media print {
-        body > *:not(#kodome-print-area) { display: none !important; }
-        #kodome-print-area {
-          display: block !important;
-          font-family: 'Hiragino Sans', sans-serif;
-          padding: 20px;
-          line-height: 2;
-          font-size: 13px;
-          color: #333;
-          white-space: pre-wrap;
-        }
-      }
-    `
-    document.head.appendChild(style)
-
-    // 印刷用コンテンツを body に追加（画面上は非表示）
-    const div = document.createElement('div')
-    div.id = 'kodome-print-area'
-    div.style.display = 'none'
-    div.textContent = text
-    document.body.appendChild(div)
-
     window.print()
-
-    // 印刷ダイアログを閉じた後にクリーンアップ
-    setTimeout(() => {
-      div.remove()
-      style.remove()
-    }, 1000)
   }
 
   // クリップボードへコピーする
@@ -269,11 +276,20 @@ const SummarySection = (props: SummarySectionProps) => {
       title="提出用サマリー"
       icon={<FileText size={18} />}
     >
-      {/* 用途説明 */}
-      <p className="text-xs text-rose-brown/60 mb-4">
-        学校・病院への提出書類を記入する際にご活用ください。
-        「コピー」ボタンで全文をクリップボードにコピーできます。
-      </p>
+      {/* 用途説明 ＋ 印刷ボタン（上部） */}
+      <div className="flex items-center justify-between mb-4 gap-3">
+        <p className="text-xs text-rose-brown/60">
+          学校・病院への提出書類を記入する際にご活用ください。
+        </p>
+        {/* 印刷するボタン（上部） */}
+        <button
+          onClick={handlePrint}
+          className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl font-medium text-sm border border-pink-soft text-rose-brown bg-white hover:bg-pink-soft/30 transition-colors shadow-sm"
+        >
+          <Printer size={15} />
+          印刷する
+        </button>
+      </div>
 
       {/* 表示カード */}
       <div className="bg-white rounded-xl border border-pink-soft/60 p-4 space-y-1">
@@ -398,9 +414,9 @@ const SummarySection = (props: SummarySectionProps) => {
         </div>
       </div>
 
-      {/* ボタン群 */}
+      {/* ボタン群（下部） */}
       <div className="mt-4 flex gap-2">
-        {/* コピーボタン */}
+        {/* クリップボードにコピーするボタン */}
         <button
           onClick={handleCopy}
           className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-medium shadow transition-all ${
@@ -417,19 +433,26 @@ const SummarySection = (props: SummarySectionProps) => {
           ) : (
             <>
               <ClipboardCopy size={16} />
-              コピー
+              クリップボードにコピー
             </>
           )}
         </button>
-        {/* 印刷ボタン */}
-        <button
-          onClick={handlePrint}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-medium border border-pink-soft text-rose-brown bg-white hover:bg-pink-soft/30 transition-colors shadow-sm"
-        >
-          <Printer size={16} />
-          印刷
-        </button>
       </div>
+
+      {/* 印刷用コンポーネント（portal で body に描画・通常時は非表示） */}
+      <PrintSummary
+        child={child}
+        allergies={allergies}
+        doctors={doctors}
+        illnesses={illnesses}
+        vaccineRecords={vaccineRecords}
+        customVaccines={customVaccines}
+        healthMemo={healthMemo}
+        familyInfo={familyInfo}
+        welfareProviders={welfareProviders}
+        welfareConsultants={welfareConsultants}
+        diagnosisInfo={diagnosisInfo}
+      />
     </Accordion>
   )
 }

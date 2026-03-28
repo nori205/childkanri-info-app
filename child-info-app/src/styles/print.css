@@ -1,0 +1,34 @@
+/* ===========================
+   印刷用スタイルシート
+   @media print でのみ適用される
+   =========================== */
+
+@media print {
+  /* 印刷時はアプリ本体（#root など）を非表示 */
+  body > *:not(#print-summary-area) {
+    display: none !important;
+  }
+
+  /* 印刷エリアを表示 */
+  #print-summary-area {
+    display: block !important;
+  }
+
+  /* 背景色・背景画像を印刷に反映させる */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* A4縦向き・余白設定 */
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm;
+  }
+
+  /* セクション途中での改ページを防ぐ（インラインスタイルのバックアップ） */
+  #print-summary-area > * {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

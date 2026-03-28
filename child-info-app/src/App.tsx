@@ -443,6 +443,9 @@ const App = () => {
                     customVaccines={activeHealth.customVaccines}
                     healthMemo={activeHealth.healthMemo}
                     familyInfo={familyInfo}
+                    welfareProviders={activeHealth.welfareProviders}
+                    welfareConsultants={activeHealth.welfareConsultants}
+                    diagnosisInfo={activeHealth.diagnosisInfo}
                   />
                 )}
               </LicenseGate>
