@@ -85,7 +85,7 @@ const TaskSummary = ({ tasks, appointments, onActiveFilterChange }: TaskSummaryP
       <div className="space-y-1.5">
         {apItems.map((ap) => (
           <div key={ap.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-pink-soft/60">
-            <span className="text-xs bg-rose-brown/10 text-rose-brown px-1.5 py-0.5 rounded flex-shrink-0">通院</span>
+            <span className="text-xs bg-rose-brown/10 text-rose-brown px-1.5 py-0.5 rounded flex-shrink-0">予定</span>
             <span className="text-sm text-dark-brown flex-1 truncate">{ap.content}</span>
             <span className="text-xs text-rose-brown/60 flex-shrink-0">{fmtDate(ap.date)}</span>
           </div>

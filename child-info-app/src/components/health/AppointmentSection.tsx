@@ -204,7 +204,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
       >
         <div className="flex items-center gap-2">
           <CalendarDays size={15} className="text-rose-brown" />
-          <span className="text-sm font-semibold text-rose-brown">通院・予約管理</span>
+          <span className="text-sm font-semibold text-rose-brown">予定・スケジュール</span>
           {/* 件数バッジ */}
           {totalCount > 0 && (
             <span className="text-xs bg-pink-muted text-cream px-2 py-0.5 rounded-full">
@@ -326,7 +326,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
                   type="text"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="例：小児科、療育、皮膚科、歯科検診"
+                  placeholder="例：小児科、入学式、保護者会、療育"
                   required
                   list="appt-content-suggestions"
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown placeholder:text-dark-brown/40"
@@ -340,12 +340,12 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
 
               {/* 病院名・場所（任意） */}
               <div>
-                <label className="text-xs text-dark-brown font-medium">病院名・場所</label>
+                <label className="text-xs text-dark-brown font-medium">場所</label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="例：〇〇クリニック、△△センター"
+                  placeholder="例：〇〇小学校、△△クリニック"
                   list="appt-location-suggestions"
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown placeholder:text-dark-brown/40"
                 />
