@@ -16,6 +16,7 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  CalendarDays,
 } from 'lucide-react'
 import type { Task, TaskCategory, SubTask } from '../types'
 import { DUE_WARN_DAYS } from '../constants'
@@ -137,6 +138,8 @@ const TaskItem = ({
   const subDone = taskSubTasks.filter((st) => st.completed).length
   // 全サブタスクが完了しているか
   const allSubDone = subTotal > 0 && subDone === subTotal
+  // サブタスクがある場合はイベント扱い（完了ボタン非表示）
+  const isEvent = taskSubTasks.length > 0
 
   // 展開ボタン押下
   const handleToggleExpand = () => {
@@ -188,24 +191,32 @@ const TaskItem = ({
     <div className={`rounded-xl border ${borderClass} transition-all`}>
       {/* メインタスク行 */}
       <div className="flex items-start gap-3 p-3">
-        {/* チェックボタン */}
-        <button
-          onClick={() => onToggle(task.id)}
-          className="mt-0.5 flex-shrink-0 text-pink-muted hover:opacity-70 transition-opacity"
-          aria-label={task.completed ? '未完了に戻す' : '完了にする'}
-        >
-          <CheckCircle2
-            size={22}
-            className={task.completed ? 'text-pink-muted/50' : 'text-pink-muted'}
-            fill={task.completed ? 'currentColor' : 'none'}
-          />
-        </button>
+        {/* チェックボタン（イベントタスクは非表示） */}
+        {!isEvent ? (
+          <button
+            onClick={() => onToggle(task.id)}
+            className="mt-0.5 flex-shrink-0 text-pink-muted hover:opacity-70 transition-opacity"
+            aria-label={task.completed ? '未完了に戻す' : '完了にする'}
+          >
+            <CheckCircle2
+              size={22}
+              className={task.completed ? 'text-pink-muted/50' : 'text-pink-muted'}
+              fill={task.completed ? 'currentColor' : 'none'}
+            />
+          </button>
+        ) : (
+          // イベントタスクはアイコンのみ（完了ボタンなし）
+          <span className="mt-0.5 flex-shrink-0 w-[22px]" />
+        )}
 
         {/* タスク情報 */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className={`text-rose-brown/70 ${task.completed ? 'opacity-50' : ''}`}>
-              <CategoryIcon category={task.category} />
+              {isEvent
+                ? <CalendarDays size={15} className="flex-shrink-0" />
+                : <CategoryIcon category={task.category[0]} />
+              }
             </span>
             <span
               className={`text-sm font-medium text-dark-brown ${
@@ -228,10 +239,14 @@ const TaskItem = ({
             )}
           </div>
 
-          {/* 種類ラベル */}
-          <span className="inline-block text-xs text-rose-brown/60 bg-cream px-1.5 py-0.5 rounded-md mb-1">
-            {task.category}
-          </span>
+          {/* 種類ラベル（複数表示） */}
+          <div className="flex flex-wrap gap-1 mb-1">
+            {task.category.map((cat) => (
+              <span key={cat} className="inline-block text-xs text-rose-brown/60 bg-cream px-1.5 py-0.5 rounded-md">
+                {cat}
+              </span>
+            ))}
+          </div>
 
           {/* 金額 */}
           {task.amount !== null && (

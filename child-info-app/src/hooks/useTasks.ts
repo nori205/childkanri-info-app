@@ -42,9 +42,9 @@ export const useTasks = (
         category: values.category,
         dueDate: values.dueDate || null,
         memo: values.memo.trim(),
-        // 支払い・入金のときのみ金額を保存
+        // 支払い・入金が含まれるときのみ金額を保存
         amount:
-          values.category === '支払い・入金' && values.amount !== ''
+          values.category.includes('支払い・入金') && values.amount !== ''
             ? Number(values.amount)
             : null,
         completed: false,

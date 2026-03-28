@@ -92,7 +92,7 @@ const TaskSummary = ({ tasks, appointments, onActiveFilterChange }: TaskSummaryP
         ))}
         {taskItems.map((t) => (
           <div key={t.id} className="flex items-center gap-2 bg-white rounded-lg px-3 py-2 border border-pink-soft/60">
-            <span className="text-xs bg-pink-soft text-rose-brown px-1.5 py-0.5 rounded flex-shrink-0">{t.category}</span>
+            <span className="text-xs bg-pink-soft text-rose-brown px-1.5 py-0.5 rounded flex-shrink-0">{t.category[0]}</span>
             <span className="text-sm text-dark-brown flex-1 truncate">{t.title}</span>
             {t.dueDate && (
               <span className="text-xs text-rose-brown/60 flex-shrink-0">{fmtDate(t.dueDate)}</span>

@@ -46,10 +46,10 @@ const TaskIcon = ({ category }: { category: string }) => {
   }
 }
 
-// 統合イベント型
+// 統合イベント型（category は複数カテゴリ対応で配列）
 type ScheduleEvent =
   | { type: 'appointment'; date: string; childId: string; label: string }
-  | { type: 'task'; date: string; childId: string; label: string; category: string }
+  | { type: 'task'; date: string; childId: string; label: string; category: string[] }
 
 const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
   const [showAll, setShowAll] = useState(false)
@@ -145,7 +145,7 @@ const ScheduleView = ({ children, tasks, appointments }: ScheduleViewProps) => {
                     <span className="text-rose-brown/50">
                       {ev.type === 'appointment'
                         ? <Stethoscope size={13} className="flex-shrink-0" />
-                        : <TaskIcon category={ev.category} />}
+                        : <TaskIcon category={ev.category[0]} />}
                     </span>
                     <span className="text-sm text-dark-brown leading-tight">{ev.label}</span>
                   </div>

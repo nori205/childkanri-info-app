@@ -97,7 +97,7 @@ export interface Task {
   id: string
   childId: string           // 紐付く子供のID
   title: string             // タイトル（必須）
-  category: TaskCategory
+  category: TaskCategory[]  // 複数カテゴリ対応
   dueDate: string | null    // 期限日 YYYY-MM-DD（任意）
   memo: string              // メモ（任意）
   amount: number | null     // 金額（支払い・入金のみ）
@@ -109,7 +109,7 @@ export interface Task {
 // タスク追加フォームの入力値
 export interface TaskFormValues {
   title: string
-  category: TaskCategory
+  category: TaskCategory[]  // 複数カテゴリ対応
   dueDate: string
   memo: string
   amount: string            // フォームでは文字列として扱う

@@ -4,7 +4,7 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
-import type { TaskFormValues } from '../types'
+import type { TaskFormValues, TaskCategory } from '../types'
 import { TASK_CATEGORIES } from '../constants'
 
 interface AddTaskModalProps {
@@ -15,7 +15,7 @@ interface AddTaskModalProps {
 
 const initialValues: TaskFormValues = {
   title: '',
-  category: '書類提出',
+  category: ['書類提出'],  // 配列に変更（複数選択対応）
   dueDate: '',
   memo: '',
   amount: '',
@@ -45,8 +45,18 @@ const AddTaskModal = ({ childName, onClose, onAdd }: AddTaskModalProps) => {
     onClose()
   }
 
+  // カテゴリのトグル（複数選択）
+  const toggleCategory = (cat: TaskCategory) => {
+    setValues((prev) => ({
+      ...prev,
+      category: prev.category.includes(cat)
+        ? prev.category.filter((c) => c !== cat)
+        : [...prev.category, cat],
+    }))
+  }
+
   // 支払い・入金が選択されているか
-  const isPayment = values.category === '支払い・入金'
+  const isPayment = values.category.includes('支払い・入金')
 
   return (
     <div
@@ -95,18 +105,22 @@ const AddTaskModal = ({ childName, onClose, onAdd }: AddTaskModalProps) => {
               <label className="block text-sm font-medium text-dark-brown mb-1">
                 種類
               </label>
-              <select
-                name="category"
-                value={values.category}
-                onChange={handleChange}
-                className="w-full border border-pink-soft rounded-xl px-3 py-2 bg-white text-dark-brown focus:outline-none focus:ring-2 focus:ring-pink-muted"
-              >
+              <div className="flex flex-wrap gap-2">
                 {TASK_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => toggleCategory(cat)}
+                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                      values.category.includes(cat)
+                        ? 'bg-pink-muted text-cream border-pink-muted'
+                        : 'bg-white text-rose-brown border-pink-soft hover:bg-pink-soft/40'
+                    }`}
+                  >
                     {cat}
-                  </option>
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
 
             {/* 金額（支払い・入金のときのみ） */}

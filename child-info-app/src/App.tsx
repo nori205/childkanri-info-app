@@ -84,7 +84,13 @@ const loadAppData = (): AppData => {
       version: data.version ?? DATA_VERSION,
       children: data.children ?? [],
       familyInfo: migrateFamilyInfo(data.familyInfo as unknown as Record<string, unknown>),
-      tasks: data.tasks ?? [],
+      tasks: ((data.tasks ?? []) as unknown as Record<string, unknown>[]).map((task) => ({
+        ...task,
+        // 旧フォーマット（文字列）を配列に移行
+        category: Array.isArray(task.category)
+          ? task.category
+          : [task.category ?? 'その他'],
+      })) as Task[],
       subTasks: data.subTasks ?? [],
       doctors: data.doctors ?? [],
       allergies: data.allergies ?? [],
