@@ -3,8 +3,8 @@
 // ===========================
 
 import { useState } from 'react'
-import { CalendarDays, ChevronDown, ChevronUp, Trash2, Plus, Pencil } from 'lucide-react'
-import type { Appointment } from '../../types'
+import { CalendarDays, ChevronDown, ChevronUp, Trash2, Plus, Pencil, CheckCircle2, Circle } from 'lucide-react'
+import type { Appointment, Task } from '../../types'
 
 interface AppointmentSectionProps {
   appointments: Appointment[]
@@ -12,6 +12,8 @@ interface AppointmentSectionProps {
   onDelete: (id: string) => void
   onUpdate: (id: string, values: Omit<Appointment, 'id' | 'childId' | 'createdAt'>) => void
   locationSuggestions?: string[]
+  tasks?: Task[]
+  onToggleTask?: (id: string) => void
 }
 
 // YYYY-MM-DD を M/D 形式に変換（例：2026-04-10 → 4/10）
@@ -46,54 +48,82 @@ const AppointmentItem = ({
   appointment,
   onDelete,
   onEdit,
+  linkedTasks = [],
+  onToggleTask,
 }: {
   appointment: Appointment
   onDelete: (id: string) => void
   onEdit: (appointment: Appointment) => void
+  linkedTasks?: Task[]
+  onToggleTask?: (id: string) => void
 }) => (
-  <li className="flex items-start justify-between gap-2 bg-cream rounded-lg px-3 py-2">
-    <div className="flex-1 min-w-0">
-      {/* 日付・時間・内容 */}
-      <div className="flex items-center gap-2">
-        <span className="text-xs font-bold text-rose-brown whitespace-nowrap">
-          {formatDate(appointment.date)}
-          {appointment.time && (
-            <span className="ml-1 font-normal">{appointment.time}</span>
-          )}
-        </span>
-        <span className="text-sm text-dark-brown truncate">{appointment.content}</span>
+  <li className="bg-cream rounded-lg px-3 py-2">
+    <div className="flex items-start justify-between gap-2">
+      <div className="flex-1 min-w-0">
+        {/* 日付・時間・内容 */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-rose-brown whitespace-nowrap">
+            {formatDate(appointment.date)}
+            {appointment.time && (
+              <span className="ml-1 font-normal">{appointment.time}</span>
+            )}
+          </span>
+          <span className="text-sm text-dark-brown truncate">{appointment.content}</span>
+        </div>
+        {/* 病院名・場所（任意） */}
+        {appointment.location && (
+          <p className="text-xs text-dark-brown/70 mt-0.5 truncate">{appointment.location}</p>
+        )}
+        {/* メモ（任意） */}
+        {appointment.memo && (
+          <p className="text-xs text-dark-brown/60 mt-0.5 truncate">{appointment.memo}</p>
+        )}
       </div>
-      {/* 病院名・場所（任意） */}
-      {appointment.location && (
-        <p className="text-xs text-dark-brown/70 mt-0.5 truncate">{appointment.location}</p>
-      )}
-      {/* メモ（任意） */}
-      {appointment.memo && (
-        <p className="text-xs text-dark-brown/60 mt-0.5 truncate">{appointment.memo}</p>
-      )}
+      {/* 編集ボタン */}
+      <button
+        onClick={() => onEdit(appointment)}
+        className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0 mt-0.5"
+        aria-label="編集"
+      >
+        <Pencil size={14} />
+      </button>
+      {/* 削除ボタン */}
+      <button
+        onClick={() => onDelete(appointment.id)}
+        className="text-rose-brown/50 hover:text-rose-brown transition-colors shrink-0 mt-0.5"
+        aria-label="削除"
+      >
+        <Trash2 size={14} />
+      </button>
     </div>
-    {/* 編集ボタン */}
-    <button
-      onClick={() => onEdit(appointment)}
-      className="text-rose-brown/40 hover:text-rose-brown transition-colors flex-shrink-0 mt-0.5"
-      aria-label="編集"
-    >
-      <Pencil size={14} />
-    </button>
-    {/* 削除ボタン */}
-    <button
-      onClick={() => onDelete(appointment.id)}
-      className="text-rose-brown/50 hover:text-rose-brown transition-colors shrink-0 mt-0.5"
-      aria-label="削除"
-    >
-      <Trash2 size={14} />
-    </button>
+
+    {/* この日のタスク */}
+    {linkedTasks.length > 0 && (
+      <ul className="mt-2 space-y-1 border-t border-rose-brown/10 pt-2">
+        {linkedTasks.map((task) => (
+          <li key={task.id} className="flex items-center gap-1.5">
+            <button
+              onClick={() => onToggleTask?.(task.id)}
+              className="flex-shrink-0 text-rose-brown/60 hover:text-rose-brown transition-colors"
+              aria-label={task.completed ? '未完了に戻す' : '完了にする'}
+            >
+              {task.completed
+                ? <CheckCircle2 size={15} className="text-rose-brown" />
+                : <Circle size={15} />}
+            </button>
+            <span className={`text-xs ${task.completed ? 'line-through text-dark-brown/40' : 'text-dark-brown'}`}>
+              {task.title}
+            </span>
+          </li>
+        ))}
+      </ul>
+    )}
   </li>
 )
 
 // ── メインコンポーネント ──────────────
 
-const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationSuggestions = [] }: AppointmentSectionProps) => {
+const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationSuggestions = [], tasks = [], onToggleTask }: AppointmentSectionProps) => {
   // アコーディオンの開閉
   const [isOpen, setIsOpen] = useState(true)
   // 全期間表示モード
@@ -204,7 +234,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
       >
         <div className="flex items-center gap-2">
           <CalendarDays size={15} className="text-rose-brown" />
-          <span className="text-sm font-semibold text-rose-brown">予定・スケジュール</span>
+          <span className="text-sm font-semibold text-rose-brown">通院・予約管理</span>
           {/* 件数バッジ */}
           {totalCount > 0 && (
             <span className="text-xs bg-pink-muted text-cream px-2 py-0.5 rounded-full">
@@ -232,7 +262,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
             ) : (
               <ul className="space-y-2">
                 {defaultAppointments.map((a) => (
-                  <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} onEdit={openEditForm} />
+                  <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} onEdit={openEditForm} linkedTasks={tasks.filter((t) => t.dueDate === a.date)} onToggleTask={onToggleTask} />
                 ))}
               </ul>
             )
@@ -256,7 +286,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
                     </div>
                     <ul className="space-y-2">
                       {group.items.map((a) => (
-                        <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} onEdit={openEditForm} />
+                        <AppointmentItem key={a.id} appointment={a} onDelete={onDelete} onEdit={openEditForm} linkedTasks={tasks.filter((t) => t.dueDate === a.date)} onToggleTask={onToggleTask} />
                       ))}
                     </ul>
                   </div>
@@ -326,7 +356,7 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
                   type="text"
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder="例：小児科、入学式、保護者会、療育"
+                  placeholder="例：小児科、療育、皮膚科、歯科検診"
                   required
                   list="appt-content-suggestions"
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown placeholder:text-dark-brown/40"
@@ -340,12 +370,12 @@ const AppointmentSection = ({ appointments, onAdd, onDelete, onUpdate, locationS
 
               {/* 病院名・場所（任意） */}
               <div>
-                <label className="text-xs text-dark-brown font-medium">場所</label>
+                <label className="text-xs text-dark-brown font-medium">病院名・場所</label>
                 <input
                   type="text"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="例：〇〇小学校、△△クリニック"
+                  placeholder="例：〇〇クリニック、△△センター"
                   list="appt-location-suggestions"
                   className="mt-0.5 w-full text-sm px-2.5 py-1.5 rounded-lg border border-pink-muted/40 bg-white focus:outline-none focus:ring-1 focus:ring-pink-muted text-dark-brown placeholder:text-dark-brown/40"
                 />

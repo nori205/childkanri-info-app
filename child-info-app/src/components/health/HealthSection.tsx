@@ -14,13 +14,15 @@ import LicenseGate from '../LicenseGate'
 import type { ChildHealthData } from '../../hooks/useHealth'
 import type {
   Doctor, Allergy, Illness, CustomVaccine, VaccineDose, VaccineType, Appointment,
-  WelfareProvider, WelfareConsultant, DiagnosisInfo,
+  WelfareProvider, WelfareConsultant, DiagnosisInfo, Task,
 } from '../../types'
 
 interface HealthSectionProps {
   health: ChildHealthData
   isUnlocked: boolean
   onUnlockClick: () => void
+  tasks?: Task[]
+  onToggleTask?: (id: string) => void
   onAddDoctor: (values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
   onDeleteDoctor: (id: string) => void
   onUpdateDoctor: (id: string, values: Omit<Doctor, 'id' | 'childId' | 'createdAt'>) => void
@@ -52,6 +54,7 @@ interface HealthSectionProps {
 
 const HealthSection = ({
   health, isUnlocked, onUnlockClick,
+  tasks, onToggleTask,
   onAddDoctor, onDeleteDoctor, onUpdateDoctor,
   onAddAllergy, onDeleteAllergy, onUpdateAllergy,
   onAddIllness, onDeleteIllness, onUpdateIllness,
@@ -84,6 +87,8 @@ const HealthSection = ({
               onDelete={onDeleteAppointment}
               onUpdate={onUpdateAppointment}
               locationSuggestions={health.doctors.map((d) => d.hospitalName).filter(Boolean)}
+              tasks={tasks}
+              onToggleTask={onToggleTask}
             />
 
             {/* かかりつけ医 */}

@@ -373,6 +373,8 @@ const App = () => {
                   health={activeHealth}
                   isUnlocked={isUnlocked}
                   onUnlockClick={() => setIsUnlockModalOpen(true)}
+                  tasks={activeTasks}
+                  onToggleTask={toggleTask}
                   onAddDoctor={(v) => addDoctor(activeChild.id, v)}
                   onDeleteDoctor={deleteDoctor}
                   onUpdateDoctor={updateDoctor}
