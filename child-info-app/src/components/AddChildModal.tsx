@@ -68,10 +68,11 @@ const AddChildModal = ({ onClose, onAdd, editInitialValues, onEdit }: AddChildMo
   return (
     // オーバーレイ
     <div
-      className="fixed inset-0 bg-dark-brown/40 flex items-center justify-center z-50 px-4"
+      className="fixed inset-0 bg-dark-brown/40 flex items-center justify-center z-50 px-4 overflow-y-auto"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onTouchMove={(e) => e.stopPropagation()}
     >
-      <div className="bg-cream rounded-2xl shadow-xl w-full max-w-md p-6">
+      <div className="bg-cream rounded-2xl shadow-xl w-full max-w-md p-6 my-4">
         {/* ヘッダー */}
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-rose-brown">{isEditMode ? '基本情報を編集' : '子供を追加'}</h2>

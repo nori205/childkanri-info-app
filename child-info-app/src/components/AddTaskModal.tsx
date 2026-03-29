@@ -62,6 +62,7 @@ const AddTaskModal = ({ childName, onClose, onAdd }: AddTaskModalProps) => {
     <div
       className="fixed inset-0 bg-dark-brown/40 flex items-end sm:items-center justify-center z-50"
       onClick={(e) => e.target === e.currentTarget && onClose()}
+      onTouchMove={(e) => e.stopPropagation()}
     >
       {/* モーダル本体（スマホはボトムシート風） */}
       <div className="bg-cream rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[90vh] overflow-y-auto">
