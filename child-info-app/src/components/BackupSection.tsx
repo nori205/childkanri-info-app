@@ -6,10 +6,16 @@ import { useRef, useState, useEffect } from 'react'
 import { Download, Upload, Share2, X } from 'lucide-react'
 import { STORAGE_KEY } from '../constants'
 
-// JSON文字列をbase64urlエンコード（Unicode対応）
-const encodeData = (json: string): string => {
+// JSON文字列を圧縮してbase64エンコード（deflate-raw + Unicode対応）
+const encodeData = async (json: string): Promise<string> => {
   const bytes = new TextEncoder().encode(json)
-  const binStr = Array.from(bytes, (b) => String.fromCharCode(b)).join('')
+  const cs = new CompressionStream('deflate-raw')
+  const writer = cs.writable.getWriter()
+  writer.write(bytes)
+  writer.close()
+  const compressed = await new Response(cs.readable).arrayBuffer()
+  const compressedBytes = new Uint8Array(compressed)
+  const binStr = Array.from(compressedBytes, (b) => String.fromCharCode(b)).join('')
   return btoa(binStr)
 }
 
@@ -63,7 +69,7 @@ const BackupSection = () => {
       setTimeout(() => setMsg(''), 3000)
       return
     }
-    const encoded = encodeData(data)
+    const encoded = await encodeData(data)
     const url = `${window.location.origin}${window.location.pathname}?import=${encoded}`
     if (navigator.share) {
       try {

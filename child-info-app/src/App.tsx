@@ -134,11 +134,21 @@ const saveAppData = (data: AppData): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
-// base64エンコードされたデータをJSON文字列にデコード
-const decodeImportData = (encoded: string): string => {
+// base64エンコードされたデータをJSON文字列にデコード（圧縮対応・旧形式互換）
+const decodeImportData = async (encoded: string): Promise<string> => {
   const binStr = atob(encoded)
   const bytes = Uint8Array.from(binStr, (c) => c.charCodeAt(0))
-  return new TextDecoder().decode(bytes)
+  try {
+    const ds = new DecompressionStream('deflate-raw')
+    const writer = ds.writable.getWriter()
+    writer.write(bytes)
+    writer.close()
+    const decompressed = await new Response(ds.readable).arrayBuffer()
+    return new TextDecoder().decode(decompressed)
+  } catch {
+    // 旧形式（非圧縮）にフォールバック
+    return new TextDecoder().decode(bytes)
+  }
 }
 
 const App = () => {
@@ -160,22 +170,25 @@ const App = () => {
 
   // ── URL共有からのインポート検出 ───────────────────
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const encoded = params.get('import')
-    if (!encoded) return
-    // URLからimportパラメータを除去（リロード後に再実行しないように）
-    const cleanUrl = window.location.pathname
-    window.history.replaceState(null, '', cleanUrl)
-    try {
-      const json = decodeImportData(encoded)
-      JSON.parse(json) // 妥当性チェック
-      if (window.confirm('共有されたデータをインポートしますか？\n現在のデータはすべて置き換えられます。')) {
-        localStorage.setItem(STORAGE_KEY, json)
-        window.location.reload()
+    const run = async () => {
+      const params = new URLSearchParams(window.location.search)
+      const encoded = params.get('import')
+      if (!encoded) return
+      // URLからimportパラメータを除去（リロード後に再実行しないように）
+      const cleanUrl = window.location.pathname
+      window.history.replaceState(null, '', cleanUrl)
+      try {
+        const json = await decodeImportData(encoded)
+        JSON.parse(json) // 妥当性チェック
+        if (window.confirm('共有されたデータをインポートしますか？\n現在のデータはすべて置き換えられます。')) {
+          localStorage.setItem(STORAGE_KEY, json)
+          window.location.reload()
+        }
+      } catch {
+        alert('共有データが正しくありません。')
       }
-    } catch {
-      alert('共有データが正しくありません。')
     }
+    run()
   }, [])
 
   // ── ライセンス管理 ────────────────────────────────
