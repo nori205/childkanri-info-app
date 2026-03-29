@@ -139,9 +139,6 @@ const BackupSection = () => {
           <input ref={importRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
         </div>
         {msg && <p className="text-[10px] text-center text-rose-brown mt-0.5">{msg}</p>}
-        <p className="text-[10px] text-rose-brown/50 leading-relaxed mt-1.5 pt-1.5 border-t border-pink-soft/60">
-          データは旦那さんにも渡せます。ただし、渡した後に追加した予定・タスクは相手には反映されません。アレルギーや基本情報など変化の少ない情報の共有に向いています。
-        </p>
       </div>
       <p className="text-[10px] text-rose-brown/50 text-right mt-0.5 pr-1">こまめにバックアップしましょう</p>
 
