@@ -67,7 +67,7 @@ const BackupSection = () => {
     const url = `${window.location.origin}${window.location.pathname}?import=${encoded}`
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'こどめも データ共有', url })
+        await navigator.share({ title: 'こどめも データ共有', text: url })
         setShowShareGuide(true)
       } catch {
         // キャンセルは無視
