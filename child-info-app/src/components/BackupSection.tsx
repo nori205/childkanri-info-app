@@ -163,6 +163,11 @@ const BackupSection = () => {
           <p className="text-[10px] text-blue-400 mt-2">
             機種変更のときも同じ手順でデータを引き継げます
           </p>
+          <div className="mt-2 pt-2 border-t border-blue-200">
+            <p className="text-[10px] text-amber-600 leading-relaxed">
+              ⚠️ 共有したデータはその時点のコピーです。共有後に追加・変更した内容は相手の端末には反映されません。
+            </p>
+          </div>
         </div>
       )}
     </div>
