@@ -107,37 +107,40 @@ const BackupSection = () => {
   }
 
   return (
-    <div className="bg-white border border-pink-soft/60 rounded-xl px-3 py-2">
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-rose-brown/70 flex-1 leading-tight">
-          {showReminder
-            ? '⚠️ バックアップをおすすめします'
-            : '💾 データのバックアップ・復元'}
-        </span>
-        <button
-          onClick={handleShare}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-blue-300 bg-white text-blue-600 hover:bg-blue-50 transition-colors"
-        >
-          <Share2 size={12} />
-          URLで共有
-        </button>
-        <button
-          onClick={handleExport}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
-        >
-          <Download size={12} />
-          バックアップ
-        </button>
-        <button
-          onClick={() => importRef.current?.click()}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
-        >
-          <Upload size={12} />
-          復元
-        </button>
-        <input ref={importRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+    <div>
+      <div className="bg-white border border-pink-soft/60 rounded-xl px-2.5 py-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] text-rose-brown/70 flex-1 leading-tight">
+            {showReminder
+              ? '⚠️ バックアップを'
+              : '💾 バックアップ・復元'}
+          </span>
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] border border-blue-300 bg-white text-blue-600 hover:bg-blue-50 transition-colors"
+          >
+            <Share2 size={10} />
+            共有
+          </button>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
+          >
+            <Download size={10} />
+            バックアップ
+          </button>
+          <button
+            onClick={() => importRef.current?.click()}
+            className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] border border-pink-soft bg-white text-rose-brown hover:bg-pink-soft/30 transition-colors"
+          >
+            <Upload size={10} />
+            復元
+          </button>
+          <input ref={importRef} type="file" accept=".json" onChange={handleImport} className="hidden" />
+        </div>
+        {msg && <p className="text-[10px] text-center text-rose-brown mt-0.5">{msg}</p>}
       </div>
-      {msg && <p className="text-xs text-center text-rose-brown mt-1">{msg}</p>}
+      <p className="text-[10px] text-rose-brown/50 text-right mt-0.5 pr-1">こまめにバックアップしましょう</p>
 
       {/* 共有後の受け取り方ガイド */}
       {showShareGuide && (
