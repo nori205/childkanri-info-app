@@ -50,8 +50,8 @@ const ChildTabs = ({
             onClick={() => onTabChange(child.id)}
             className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               activeChildId === child.id
-                ? 'bg-pink-muted text-cream shadow'
-                : 'bg-pink-soft text-dark-brown hover:bg-pink-muted/50'
+                ? 'bg-dark-brown text-cream shadow'
+                : 'bg-dark-brown/10 text-dark-brown hover:bg-dark-brown/20'
             }`}
           >
             {child.name}
