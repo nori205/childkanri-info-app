@@ -152,37 +152,17 @@ const BackupSection = () => {
             <X size={14} />
           </button>
 
-          <p className="text-xs font-bold text-blue-700 mb-2">📨 受け取った人の手順</p>
-
-          <ol className="text-xs text-blue-800 space-y-2 leading-relaxed list-none">
-            <li className="flex gap-1.5">
-              <span className="font-bold flex-shrink-0">①</span>
-              <span>LINEに届いたURLを<span className="font-semibold">長押し</span>して「URLをコピー」をタップ</span>
-            </li>
-            <li className="flex gap-1.5">
-              <span className="font-bold flex-shrink-0">②</span>
-              <span><span className="font-semibold">Chrome（またはSafari）</span>を開いて、アドレスバーにペーストして開く</span>
-            </li>
-            <li className="pl-4 text-[10px] text-blue-500 -mt-1">
-              ※ LINEのままURLをタップして開いてもデータが取り込めません
-            </li>
-            <li className="flex gap-1.5">
-              <span className="font-bold flex-shrink-0">③</span>
-              <span>「データを取り込みますか？」と出たら <span className="font-semibold">OK</span> を押す</span>
-            </li>
-            <li className="flex gap-1.5">
-              <span className="font-bold flex-shrink-0">④</span>
-              <span>アプリにデータが反映されて完了！</span>
-            </li>
+          <p className="text-xs font-semibold text-blue-700 mb-1.5">受け取った人の手順</p>
+          <ol className="text-xs text-blue-700 space-y-1 leading-relaxed list-none">
+            <li>① LINEに届いたURLをタップする</li>
+            <li>② 画面上部の「…」→「ブラウザで開く」をタップ</li>
+            <li className="text-blue-500 text-[10px] pl-3">※ LINEの中のブラウザではなく、ChromeやSafariで開く必要があります</li>
+            <li>③「データを取り込みますか？」→「OK」を押す</li>
+            <li>④ アプリにデータが反映されて完了！</li>
           </ol>
-
-          <div className="mt-2.5 pt-2 border-t border-blue-200">
-            <p className="text-[10px] text-blue-500 font-medium mb-1">💡 うまくいかないときは</p>
-            <ul className="text-[10px] text-blue-400 space-y-0.5 list-none">
-              <li>・URLが長くて開けない場合はコピーして貼り付けてみてください</li>
-              <li>・機種変更のときも同じ手順でデータを引き継げます</li>
-            </ul>
-          </div>
+          <p className="text-[10px] text-blue-400 mt-2">
+            機種変更のときも同じ手順でデータを引き継げます
+          </p>
         </div>
       )}
     </div>
