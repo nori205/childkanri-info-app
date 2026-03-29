@@ -70,7 +70,7 @@ const BackupSection = () => {
       return
     }
     const encoded = await encodeData(data)
-    const url = `${window.location.origin}${window.location.pathname}?import=${encoded}`
+    const url = `${window.location.origin}${window.location.pathname}?import=${encodeURIComponent(encoded)}`
     if (navigator.share) {
       try {
         await navigator.share({ title: 'こどめも データ共有', text: url })
