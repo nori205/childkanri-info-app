@@ -9,7 +9,7 @@ import type { Task, Appointment } from '../types'
 interface TaskSummaryProps {
   tasks: Task[]
   appointments: Appointment[]
-  onActiveFilterChange?: (active: boolean) => void
+  onActiveFilterChange?: (filter: FilterKey | null) => void
 }
 
 // 今日の日付文字列を返す（YYYY-MM-DD、ローカル時刻）
@@ -58,7 +58,7 @@ const TaskSummary = ({ tasks, appointments, onActiveFilterChange }: TaskSummaryP
   const toggle = (key: FilterKey) => {
     const next = activeFilter === key ? null : key
     setActiveFilter(next)
-    onActiveFilterChange?.(next !== null)
+    onActiveFilterChange?.(next)
   }
 
   // 展開リストの内容

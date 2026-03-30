@@ -120,6 +120,9 @@ export const UnlockModal = ({ onClose, onUnlock }: UnlockModalProps) => {
             {/* できること説明 */}
             <div className="bg-pink-soft/50 rounded-xl p-4 mb-4 space-y-1.5">
               <p className="text-xs font-semibold text-rose-brown mb-2">解除すると使えるようになる機能</p>
+              <p className="text-[11px] text-rose-brown/70 bg-white/70 rounded-lg px-2.5 py-1.5 mb-2">
+                🏠 1つのコードでご家族全員が使えます
+              </p>
               {[
                 '子供を何人でも登録',
                 'アレルギー・病気履歴の記録',

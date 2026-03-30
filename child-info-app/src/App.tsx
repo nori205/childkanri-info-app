@@ -166,7 +166,7 @@ const App = () => {
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false)
   // 子供追加制限モーダル
   const [isChildLimitModalOpen, setIsChildLimitModalOpen] = useState(false)
-  const [isTaskFilterActive, setIsTaskFilterActive] = useState(false)
+  const [activeTaskFilter, setActiveTaskFilter] = useState<'today' | 'soon' | 'all' | null>(null)
 
   // ── URL共有からのインポート検出 ───────────────────
   useEffect(() => {
@@ -390,9 +390,9 @@ const App = () => {
               <TaskSummary
                 tasks={activeTasks}
                 appointments={activeAppointments}
-                onActiveFilterChange={setIsTaskFilterActive}
+                onActiveFilterChange={setActiveTaskFilter}
               />
-              {isTaskFilterActive && (
+              {activeTaskFilter === 'all' && (
                 <TaskList
                   tasks={activeTasks}
                   onToggle={toggleTask}
