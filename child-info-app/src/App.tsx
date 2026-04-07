@@ -320,11 +320,11 @@ const App = () => {
       {/* URL移行お知らせバナー */}
       <div className="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm px-4 py-3">
         <div className="max-w-2xl mx-auto space-y-1">
-          <p className="font-bold">【ご利用中の方へ】サービスURLが変わります</p>
+          <p className="font-bold">【重要】サービスURLが変わりました</p>
           <p>
-            サーバー移行のため、近日中に新しいURLへ移行します。
-            データを引き継ぐには、下の「バックアップ」からデータを保存しておいてください。
-            新しいURLで同じく「バックアップ」から復元できます。
+            サーバー移行のため、新しいURLに移行しました。<br />
+            新しいURL：<a href="https://ubiquitous-dragon-fef7cc.netlify.app" className="underline font-bold">https://ubiquitous-dragon-fef7cc.netlify.app</a><br />
+            データを引き継ぐには、下の「バックアップ」からデータを保存し、新しいURLで「復元」してください。
           </p>
         </div>
       </div>
