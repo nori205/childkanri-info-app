@@ -317,6 +317,18 @@ const App = () => {
       {/* ヘッダー */}
       <Header />
 
+      {/* URL移行お知らせバナー */}
+      <div className="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm px-4 py-3">
+        <div className="max-w-2xl mx-auto space-y-1">
+          <p className="font-bold">【ご利用中の方へ】サービスURLが変わります</p>
+          <p>
+            サーバー移行のため、近日中に新しいURLへ移行します。
+            データを引き継ぐには、下の「バックアップ」からデータを保存しておいてください。
+            新しいURLで同じく「バックアップ」から復元できます。
+          </p>
+        </div>
+      </div>
+
       {/* ライセンスバナー（常時表示） */}
       <LicenseBanner
         isUnlocked={isUnlocked}
