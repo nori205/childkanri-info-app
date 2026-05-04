@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ワイモバ ギガ繰越シミュレーター</title>
+<style>
+  :root {
+    --bg: #fef9f3;
+    --ink: #1a1a1a;
+    --accent: #e8514c;
+    --accent-soft: #fde6e4;
+    --sub: #6b6b6b;
+    --line: #e5dfd5;
+    --good: #2d8659;
+    --warn: #c9851b;
+    --card: #ffffff;
+    --blue: #4a80d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 20px 16px 60px;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 560px; margin: 0 auto; }
+
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-top: 12px;
+  }
+
+  .logo-mark {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 4px 12px;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    font-weight: 700;
+    margin-bottom: 12px;
+    border-radius: 2px;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .subtitle { color: var(--sub); font-size: 13px; }
+
+  /* ---- Tab bar ---- */
+  .tab-bar {
+    display: flex;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid var(--line);
+    background: white;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 13px 8px;
+    background: white;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    color: var(--sub);
+    transition: all 0.15s;
+    line-height: 1.3;
+  }
+
+  .tab-btn:first-child { border-right: 1.5px solid var(--line); }
+
+  .tab-btn.active {
+    background: var(--ink);
+    color: white;
+  }
+
+  .tab-btn .tab-sub {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-top: 1px;
+  }
+
+  /* ---- Mode panels ---- */
+  .mode-panel { display: none; }
+  .mode-panel.active { display: block; }
+
+  /* ---- Shared card ---- */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title::before {
+    content: "";
+    width: 4px;
+    height: 16px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  .form-row { margin-bottom: 14px; }
+  .form-row:last-child { margin-bottom: 0; }
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .label-hint {
+    color: var(--sub);
+    font-weight: 400;
+    font-size: 12px;
+    margin-left: 4px;
+  }
+
+  input[type="number"], select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-size: 16px;
+    background: white;
+    font-family: inherit;
+    color: var(--ink);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  select {
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23666' d='M6 8L0 0h12z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .input-with-unit { position: relative; }
+  .input-with-unit input { padding-right: 42px; }
+
+  .unit-label {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--sub);
+    font-size: 14px;
+    pointer-events: none;
+  }
+
+  .button {
+    width: 100%;
+    padding: 16px;
+    background: var(--ink);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: inherit;
+    transition: transform 0.1s;
+  }
+
+  .button:active { transform: scale(0.98); }
+  .button:hover { background: #000; }
+
+  /* ---- Result card (shared style) ---- */
+  .result-card {
+    background: linear-gradient(135deg, var(--accent-soft), #fff5e6);
+    border: 2px solid var(--accent);
+    display: none;
+  }
+
+  .result-card.show { display: block; }
+
+  .recommendation {
+    text-align: center;
+    padding: 16px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px dashed var(--line);
+  }
+
+  .reco-label {
+    font-size: 12px;
+    color: var(--sub);
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .reco-plan {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .reco-plan .plan-detail {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 500;
+    display: block;
+    margin-top: 2px;
+  }
+
+  .breakdown { font-size: 13px; }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+  .breakdown-label { color: var(--sub); }
+
+  .breakdown-value {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .alert {
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  .alert-good {
+    background: rgba(45,134,89,0.08);
+    color: var(--good);
+    border-left: 3px solid var(--good);
+  }
+
+  .alert-warn {
+    background: rgba(201,133,27,0.08);
+    color: var(--warn);
+    border-left: 3px solid var(--warn);
+  }
+
+  .alert-info {
+    background: rgba(74,128,212,0.08);
+    color: var(--blue);
+    border-left: 3px solid var(--blue);
+  }
+
+  .plan-info {
+    background: rgba(0,0,0,0.02);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--sub);
+    line-height: 1.7;
+    margin-top: 14px;
+  }
+
+  .plan-info strong { color: var(--ink); }
+
+  /* ---- History mode specific ---- */
+  .history-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .month-label {
+    width: 62px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--sub);
+    flex-shrink: 0;
+  }
+
+  .history-input-wrap {
+    flex: 1;
+    position: relative;
+    margin: 0 8px 0 4px;
+  }
+
+  .history-input-wrap input { padding-right: 42px; }
+
+  .remove-btn {
+    width: 30px;
+    height: 30px;
+    border: none;
+    background: none;
+    color: var(--sub);
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .remove-btn:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .add-month-btn {
+    width: 100%;
+    padding: 10px;
+    background: none;
+    border: 1.5px dashed var(--line);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--sub);
+    cursor: pointer;
+    margin: 4px 0 14px;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+
+  .add-month-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .add-month-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* ---- Chart ---- */
+  .chart-outer { margin: 4px 0 16px; }
+
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 110px;
+    border-bottom: 1.5px solid var(--line);
+    padding-bottom: 0;
+  }
+
+  .chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    min-width: 0;
+  }
+
+  .bar-val {
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 3px;
+    white-space: nowrap;
+  }
+
+  .bar-fill {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+  }
+
+  .chart-labels {
+    display: flex;
+    gap: 6px;
+    margin-top: 5px;
+  }
+
+  .chart-label {
+    flex: 1;
+    text-align: center;
+    font-size: 9px;
+    color: var(--sub);
+    min-width: 0;
+  }
+
+  /* ---- Stats grid ---- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .stat-box {
+    background: rgba(0,0,0,0.02);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--sub);
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 15px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---- Trend badge ---- */
+  .trend-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    color: var(--sub);
+  }
+
+  .trend-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .trend-up   { background: rgba(201,133,27,0.12); color: var(--warn); }
+  .trend-stable { background: rgba(45,134,89,0.12); color: var(--good); }
+  .trend-down { background: rgba(74,128,212,0.12); color: var(--blue); }
+  .trend-single { background: rgba(0,0,0,0.06); color: var(--sub); }
+
+  footer {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 11px;
+    color: var(--sub);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <span class="logo-mark">Y!MOBILE GIGA SIM</span>
+    <h1>ギガ繰越シミュレーター</h1>
+    <p class="subtitle">来月のプラン、SとMどっちがいい？</p>
+  </header>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-predict" onclick="switchTab('predict')">
+      来月を予測
+      <span class="tab-sub">来月の使用量を入力して判定</span>
+    </button>
+    <button class="tab-btn" id="tab-history" onclick="switchTab('history')">
+      履歴から分析
+      <span class="tab-sub">過去の実績で傾向をチェック</span>
+    </button>
+  </div>
+
+  <!-- ===== モード①：来月を予測 ===== -->
+  <div id="mode-predict" class="mode-panel active">
+
+    <div class="card">
+      <div class="card-title">今月の状況を入力</div>
+
+      <div class="form-row">
+        <label>今のプラン</label>
+        <select id="currentPlan">
+          <option value="S">シンプル2/3 S（4GB or 5GB）</option>
+          <option value="M" selected>シンプル2/3 M（30GB）</option>
+          <option value="L">シンプル2/3 L（35GB）</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label>今月使ったGB <span class="label-hint">(My Y!mobileで確認)</span></label>
+        <div class="input-with-unit">
+          <input type="number" id="usedGB" step="0.1" min="0" placeholder="例：12.5">
+          <span class="unit-label">GB</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>先月から繰り越したGB <span class="label-hint">(なければ0)</span></label>
+        <div class="input-with-unit">
+          <input type="number" id="carriedGB" step="0.1" min="0" value="0" placeholder="0">
+          <span class="unit-label">GB</span>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>来月使う予定のGB <span class="label-hint">(だいたいでOK)</span></label>
+        <div class="input-with-unit">
+          <input type="number" id="nextGB" step="0.1" min="0" placeholder="例：15">
+          <span class="unit-label">GB</span>
+        </div>
+      </div>
+
+      <button class="button" onclick="simulate()">来月のおすすめプランを見る</button>
+    </div>
+
+    <div class="card result-card" id="result">
+      <div class="card-title">シミュレーション結果</div>
+
+      <div class="recommendation">
+        <div class="reco-label">来月のおすすめ</div>
+        <div class="reco-plan" id="recoPlan">
+          Mプラン
+          <span class="plan-detail" id="recoDetail">30GB / 月額4,015円〜</span>
+        </div>
+      </div>
+
+      <div class="breakdown">
+        <div class="breakdown-row">
+          <span class="breakdown-label">今月の余り</span>
+          <span class="breakdown-value" id="leftover">- GB</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">来月に繰り越せるGB</span>
+          <span class="breakdown-value" id="canCarry">- GB</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">来月の使える容量合計</span>
+          <span class="breakdown-value" id="totalNext">- GB</span>
+        </div>
+        <div class="breakdown-row">
+          <span class="breakdown-label">来月の予測使用量</span>
+          <span class="breakdown-value" id="needNext">- GB</span>
+        </div>
+      </div>
+
+      <div id="alertArea"></div>
+    </div>
+
+  </div><!-- /mode-predict -->
+
+
+  <!-- ===== モード②：履歴から分析 ===== -->
+  <div id="mode-history" class="mode-panel">
+
+    <div class="card">
+      <div class="card-title">過去の使用量を入力</div>
+
+      <div class="form-row" style="margin-bottom:18px;">
+        <label>現在のプラン</label>
+        <select id="historyPlan">
+          <option value="S">シンプル2/3 S（4GB or 5GB）</option>
+          <option value="M" selected>シンプル2/3 M（30GB）</option>
+          <option value="L">シンプル2/3 L（35GB）</option>
+        </select>
+      </div>
+
+      <div id="historyList"></div>
+
+      <button class="add-month-btn" id="addMonthBtn" onclick="addMonth()">＋ 月を追加（最大6ヶ月）</button>
+
+      <button class="button" onclick="analyzeHistory()">使用傾向を分析する</button>
+    </div>
+
+    <div class="card result-card" id="historyResult">
+      <div class="card-title">使用傾向の分析</div>
+
+      <!-- 棒グラフ -->
+      <div class="chart-outer">
+        <div class="chart-bars" id="chartBars"></div>
+        <div class="chart-labels" id="chartLabels"></div>
+      </div>
+
+      <!-- 統計 -->
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-label">平均</div>
+          <div class="stat-value" id="statAvg">-</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">最大</div>
+          <div class="stat-value" id="statMax">-</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">最小</div>
+          <div class="stat-value" id="statMin">-</div>
+        </div>
+      </div>
+
+      <!-- 傾向 -->
+      <div class="trend-row">
+        <span>使用傾向：</span>
+        <span class="trend-badge" id="trendDisplay">-</span>
+      </div>
+
+      <!-- おすすめプラン -->
+      <div class="recommendation" style="margin-top:0;">
+        <div class="reco-label">おすすめプラン</div>
+        <div class="reco-plan" id="historyRecoPlan">
+          -
+          <span class="plan-detail" id="historyRecoDetail"></span>
+        </div>
+      </div>
+
+      <div id="historyAlertArea"></div>
+    </div>
+
+  </div><!-- /mode-history -->
+
+
+  <!-- 繰越ルール（共通） -->
+  <div class="card">
+    <div class="card-title">繰越のルール</div>
+    <div class="plan-info">
+      ✔ 当月余ったGBは<strong>翌月末まで</strong>使える<br>
+      ✔ 翌月末を過ぎたら消滅<br>
+      ✔ 繰越上限は<strong>翌月加入プランの容量まで</strong><br>
+      ✔ 使う順番：繰越分 → 当月分<br><br>
+      <strong>ざっくり料金（割引前/税込）</strong><br>
+      S：2,365円 / M：4,015円 / L：5,115円<br>
+      <span style="font-size:11px;">※おうち割やPayPay割で変動。最新は公式サイトで確認してね。</span>
+    </div>
+  </div>
+
+  <footer>
+    のりこ式・スマホ代最適化ツール
+  </footer>
+
+</div><!-- /container -->
+
+<script>
+  const PLANS = {
+    S: { name: 'Sプラン', cap: 4,  price: '2,365円', detail: '4GB / 月額2,365円〜' },
+    M: { name: 'Mプラン', cap: 30, price: '4,015円', detail: '30GB / 月額4,015円〜' },
+    L: { name: 'Lプラン', cap: 35, price: '5,115円', detail: '35GB / 月額5,115円〜' }
+  };
+
+  // ===== タブ切り替え =====
+  function switchTab(mode) {
+    document.querySelectorAll('.mode-panel').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('mode-' + mode).classList.add('active');
+    document.getElementById('tab-' + mode).classList.add('active');
+  }
+
+  // ===== 来月を予測（既存） =====
+  function simulate() {
+    const currentPlan = document.getElementById('currentPlan').value;
+    const usedGB    = parseFloat(document.getElementById('usedGB').value)    || 0;
+    const carriedGB = parseFloat(document.getElementById('carriedGB').value) || 0;
+    const nextGB    = parseFloat(document.getElementById('nextGB').value)    || 0;
+
+    if (!document.getElementById('usedGB').value || !document.getElementById('nextGB').value) {
+      alert('「今月使ったGB」と「来月使う予定のGB」を入力してね');
+      return;
+    }
+
+    const currentCap     = PLANS[currentPlan].cap;
+    const totalAvailable = currentCap + carriedGB;
+    const leftover       = Math.max(0, totalAvailable - usedGB);
+
+    const candidates = ['S', 'M', 'L'].map(p => {
+      const cap      = PLANS[p].cap;
+      const canCarry = Math.min(leftover, cap);
+      const totalNext = cap + canCarry;
+      const enough   = totalNext >= nextGB;
+      const margin   = totalNext - nextGB;
+      return { plan: p, cap, canCarry, totalNext, enough, margin };
+    });
+
+    const sufficient = candidates.filter(c => c.enough);
+    const reco = sufficient.length > 0 ? sufficient[0] : candidates[candidates.length - 1];
+
+    document.getElementById('recoPlan').childNodes[0].textContent = PLANS[reco.plan].name;
+    document.getElementById('recoDetail').textContent             = PLANS[reco.plan].detail;
+    document.getElementById('leftover').textContent               = leftover.toFixed(1) + ' GB';
+    document.getElementById('canCarry').textContent               = reco.canCarry.toFixed(1) + ' GB';
+    document.getElementById('totalNext').textContent              = reco.totalNext.toFixed(1) + ' GB';
+    document.getElementById('needNext').textContent               = nextGB.toFixed(1) + ' GB';
+
+    const alertArea = document.getElementById('alertArea');
+    alertArea.innerHTML = '';
+    if (reco.enough) {
+      alertArea.innerHTML = `<div class="alert alert-good">✓ ${PLANS[reco.plan].name}で足りる！来月は約${reco.margin.toFixed(1)}GB余裕があるよ。</div>`;
+    } else {
+      alertArea.innerHTML = `<div class="alert alert-warn">⚠ Lプランでも${Math.abs(reco.margin).toFixed(1)}GB足りない計算。データ追加購入かWi-Fi活用を検討してね。</div>`;
+    }
+
+    document.getElementById('result').classList.add('show');
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // ===== 履歴から分析 =====
+  function getMonthLabel(index) {
+    if (index === 0) return '今月';
+    if (index === 1) return '先月';
+    return index + 'ヶ月前';
+  }
+
+  function updateMonthLabels() {
+    document.querySelectorAll('.history-row').forEach((row, i) => {
+      row.querySelector('.month-label').textContent = getMonthLabel(i);
+    });
+  }
+
+  function updateRemoveButtons() {
+    const rows = document.querySelectorAll('.history-row');
+    rows.forEach(row => {
+      row.querySelector('.remove-btn').style.visibility = rows.length <= 1 ? 'hidden' : 'visible';
+    });
+  }
+
+  function updateAddButton() {
+    const count = document.querySelectorAll('.history-row').length;
+    const btn = document.getElementById('addMonthBtn');
+    btn.disabled = count >= 6;
+    btn.textContent = count >= 6 ? '最大6ヶ月まで入力できます' : '＋ 月を追加（最大6ヶ月）';
+  }
+
+  function createHistoryRow(index) {
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    row.innerHTML =
+      '<span class="month-label">' + getMonthLabel(index) + '</span>' +
+      '<div class="history-input-wrap">' +
+        '<input type="number" class="history-input" step="0.1" min="0" placeholder="例: 12.5">' +
+        '<span class="unit-label">GB</span>' +
+      '</div>' +
+      '<button class="remove-btn" onclick="removeMonth(this)" title="削除">×</button>';
+    return row;
+  }
+
+  function addMonth() {
+    const list  = document.getElementById('historyList');
+    const count = list.querySelectorAll('.history-row').length;
+    if (count >= 6) return;
+    list.appendChild(createHistoryRow(count));
+    updateRemoveButtons();
+    updateAddButton();
+  }
+
+  function removeMonth(btn) {
+    const list  = document.getElementById('historyList');
+    const count = list.querySelectorAll('.history-row').length;
+    if (count <= 1) return;
+    btn.closest('.history-row').remove();
+    updateMonthLabels();
+    updateRemoveButtons();
+    updateAddButton();
+  }
+
+  function analyzeHistory() {
+    const inputs = document.querySelectorAll('.history-input');
+    const values = [];
+
+    inputs.forEach(input => {
+      const v = parseFloat(input.value);
+      if (input.value !== '' && !isNaN(v) && v >= 0) values.push(v);
+    });
+
+    if (values.length < 1) {
+      alert('使用量を1ヶ月分以上入力してね');
+      return;
+    }
+
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+
+    // --- 傾向判定（values[0]=今月、values[n-1]=古い） ---
+    let trend, trendText, trendClass;
+
+    if (values.length === 1) {
+      trend = 'single'; trendText = 'データ1件'; trendClass = 'trend-single';
+    } else {
+      let changePct;
+      if (values.length === 2) {
+        changePct = (values[0] - values[1]) / (values[1] || 1);
+      } else {
+        const half     = Math.floor(values.length / 2);
+        const newer    = values.slice(0, half);
+        const older    = values.slice(values.length - half);
+        const newerAvg = newer.reduce((a, b) => a + b, 0) / newer.length;
+        const olderAvg = older.reduce((a, b) => a + b, 0) / older.length;
+        changePct = (newerAvg - olderAvg) / (olderAvg || 1);
+      }
+
+      if (changePct > 0.15) {
+        trend = 'up';     trendText = '増加傾向 ↗'; trendClass = 'trend-up';
+      } else if (changePct < -0.15) {
+        trend = 'down';   trendText = '減少傾向 ↘'; trendClass = 'trend-down';
+      } else {
+        trend = 'stable'; trendText = '安定 →';     trendClass = 'trend-stable';
+      }
+    }
+
+    // --- おすすめプランの判定基準 ---
+    let targetGB, mainMsg, subMsg;
+
+    if (trend === 'up') {
+      targetGB = max * 1.15;
+      mainMsg  = `増加傾向にあります。最大使用量 ${max.toFixed(1)}GB をベースに、余裕を持って計算しています。`;
+      subMsg   = '使用量が伸びているときは、繰越が少なくなりがちなので多めのプランが安心です。';
+    } else if (trend === 'down') {
+      targetGB = avg * 1.1;
+      mainMsg  = `減少傾向にあります。平均 ${avg.toFixed(1)}GB に少しバッファを加えて計算しています。`;
+      subMsg   = '使用量が減ってきているなら、プランダウンを検討するタイミングかもしれません。';
+    } else if (trend === 'single') {
+      targetGB = values[0] * 1.2;
+      mainMsg  = `今月の使用量 ${values[0].toFixed(1)}GB をベースに計算しています。`;
+      subMsg   = '月数が多いほど精度が上がります。先月以前も入力してみましょう。';
+    } else {
+      targetGB = avg * 1.2;
+      mainMsg  = `使用量は安定しています。平均 ${avg.toFixed(1)}GB に余裕分を加えて計算しています。`;
+      subMsg   = '安定していれば繰越も積み上がりやすく、プランダウンを試す余地があります。';
+    }
+
+    // 一番安くて足りるプランを選択
+    let recoPlanKey = 'L';
+    for (const key of ['S', 'M', 'L']) {
+      if (PLANS[key].cap >= targetGB) { recoPlanKey = key; break; }
+    }
+
+    // --- 描画 ---
+    renderChart(values);
+
+    document.getElementById('statAvg').textContent = avg.toFixed(1) + ' GB';
+    document.getElementById('statMax').textContent = max.toFixed(1) + ' GB';
+    document.getElementById('statMin').textContent = min.toFixed(1) + ' GB';
+
+    const trendEl = document.getElementById('trendDisplay');
+    trendEl.textContent = trendText;
+    trendEl.className   = 'trend-badge ' + trendClass;
+
+    document.getElementById('historyRecoPlan').childNodes[0].textContent = PLANS[recoPlanKey].name;
+    document.getElementById('historyRecoDetail').textContent             = PLANS[recoPlanKey].detail;
+
+    const alertArea = document.getElementById('historyAlertArea');
+    const alertType = trend === 'up' ? 'alert-warn' : trend === 'down' ? 'alert-info' : 'alert-good';
+    alertArea.innerHTML =
+      `<div class="alert ${alertType}">${mainMsg}</div>` +
+      `<div class="alert alert-good" style="margin-top:8px;">${subMsg}</div>`;
+
+    document.getElementById('historyResult').classList.add('show');
+    document.getElementById('historyResult').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderChart(values) {
+    // 古い順（左）→ 新しい順（右）で表示
+    const display = [...values].reverse();
+    const maxVal  = Math.max(...display, 1);
+
+    const chartBars   = document.getElementById('chartBars');
+    const chartLabels = document.getElementById('chartLabels');
+    chartBars.innerHTML   = '';
+    chartLabels.innerHTML = '';
+
+    // ラベル（古い順）
+    const labels = [];
+    for (let i = values.length - 1; i >= 0; i--) {
+      labels.push(getMonthLabel(i));
+    }
+
+    display.forEach((val, i) => {
+      const isNewest   = i === display.length - 1;
+      const heightPct  = Math.max((val / maxVal) * 100, 4);
+      const barBg      = isNewest ? 'var(--accent)' : 'rgba(232,81,76,0.25)';
+
+      const col = document.createElement('div');
+      col.className = 'chart-col';
+      col.innerHTML =
+        '<span class="bar-val">' + val.toFixed(1) + '</span>' +
+        '<div class="bar-fill" style="height:' + heightPct + '%;background:' + barBg + '"></div>';
+      chartBars.appendChild(col);
+
+      const lbl = document.createElement('div');
+      lbl.className   = 'chart-label';
+      lbl.textContent = labels[i];
+      chartLabels.appendChild(lbl);
+    });
+  }
+
+  // ===== 初期化 =====
+  (function init() {
+    const list = document.getElementById('historyList');
+    for (let i = 0; i < 3; i++) {
+      list.appendChild(createHistoryRow(i));
+    }
+    updateRemoveButtons();
+    updateAddButton();
+  })();
+</script>
+
+</body>
+</html>
