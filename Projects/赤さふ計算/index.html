@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>米粉パン レシピ計算</title>
+  <title>あるもん</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -162,6 +162,30 @@
       color: #888;
     }
 
+    /* クイック計算ボタン */
+    .quick-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: #c8860a;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 12px rgba(200,134,10,0.3);
+    }
+    .quick-btn:active { background: #a06808; box-shadow: none; }
+    .quick-error {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #c44;
+      margin-top: -10px;
+      margin-bottom: 12px;
+    }
+
     .calc-btn {
       width: 100%;
       padding: 14px;
@@ -176,6 +200,46 @@
       letter-spacing: 0.05em;
     }
     .calc-btn:active { background: #a06808; }
+
+    /* はかり精度セレクター */
+    .precision-selector { margin-bottom: 16px; }
+    .precision-label {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .precision-buttons {
+      display: flex;
+      border: 2px solid #c8860a;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .prec-btn {
+      flex: 1;
+      padding: 12px 4px;
+      min-height: 52px;
+      background: white;
+      border: none;
+      border-right: 1px solid #c8860a;
+      color: #c8860a;
+      font-size: 0.82rem;
+      line-height: 1.4;
+      cursor: pointer;
+    }
+    .prec-btn:last-child { border-right: none; }
+    .prec-btn.active {
+      background: #c8860a;
+      color: white;
+      font-weight: bold;
+    }
+    .prec-btn:active:not(.active) { background: #fff3e0; }
+    .prec-btn small {
+      display: block;
+      font-size: 0.72rem;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
 
     /* 結果 */
     #result-card { display: none; }
@@ -222,6 +286,17 @@
       display: block;
     }
 
+    /* 注意書き */
+    .ingredient-note {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #999;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #f0ead8;
+      line-height: 1.5;
+    }
+
     .error-msg {
       background: #fee;
       border: 1px solid #fcc;
@@ -236,7 +311,7 @@
 <body>
 
 <header>
-  <h1>🍞 米粉パン レシピ計算</h1>
+  <h1>🍞 あるもん</h1>
   <p>材料の量を自動で計算しなおします</p>
 </header>
 
@@ -250,13 +325,39 @@
       <span>量</span>
       <span>単位</span>
     </div>
+    <datalist id="ingredient-names">
+      <option value="米粉">
+      <option value="強力粉">
+      <option value="小麦粉">
+      <option value="薄力粉">
+      <option value="中力粉">
+      <option value="砂糖">
+      <option value="塩">
+      <option value="バター">
+      <option value="牛乳">
+      <option value="水">
+      <option value="卵">
+      <option value="ドライイースト">
+      <option value="イースト">
+      <option value="ベーキングパウダー">
+      <option value="重曹">
+      <option value="ヨーグルト">
+      <option value="はちみつ">
+      <option value="油">
+      <option value="オリーブオイル">
+      <option value="豆乳">
+    </datalist>
     <div id="ingredient-list"></div>
     <button class="add-btn" onclick="addRow()">＋ 材料を追加</button>
   </div>
 
-  <!-- 基準材料 -->
+  <!-- クイック計算 -->
+  <button class="quick-btn" onclick="quickCalcYeast()">🧪 ドライイースト1袋（3g）で計算</button>
+  <div id="quick-error" class="quick-error"></div>
+
+  <!-- 基準材料（手動） -->
   <div class="card">
-    <h2>② 固定したい材料と量を指定</h2>
+    <h2>② 別の材料を基準にする場合</h2>
     <div class="base-select-area">
       <label>どの材料を基準にしますか？</label>
       <div class="base-row">
@@ -275,6 +376,23 @@
   <!-- 結果 -->
   <div class="card" id="result-card">
     <h2>③ 計算結果</h2>
+
+    <!-- はかり精度セレクター -->
+    <div class="precision-selector">
+      <div class="precision-label">お使いのはかりを選んでね</div>
+      <div class="precision-buttons">
+        <button class="prec-btn" data-prec="0.1" onclick="setPrecision('0.1')">
+          0.1g単位<small>例：13.3g</small>
+        </button>
+        <button class="prec-btn" data-prec="0.5" onclick="setPrecision('0.5')">
+          0.5g単位<small>例：13.5g</small>
+        </button>
+        <button class="prec-btn" data-prec="1" onclick="setPrecision('1')">
+          1g単位<small>例：13g</small>
+        </button>
+      </div>
+    </div>
+
     <div class="result-ratio">倍率: <span id="ratio-display"></span></div>
     <table class="result-table">
       <thead>
@@ -286,12 +404,47 @@
       </thead>
       <tbody id="result-body"></tbody>
     </table>
+
+    <!-- 注意書き -->
+    <p class="ingredient-note">イーストと塩は正確に量ってね。他はざっくりでもOK🤓</p>
   </div>
 
 </div>
 
 <script>
   let ingredients = [];
+  let lastRatio = null;
+  let lastBaseIdx = null;
+
+  // はかり精度（localStorage から復元、デフォルト 1g）
+  let precision = localStorage.getItem('scalePrecision') || '1';
+
+  // 【1】丸め処理を精度設定に統一
+  function fmt(v) {
+    if (v === 0) return '0';
+    if (precision === '0.1') {
+      return (Math.round(v * 10) / 10).toFixed(1);
+    } else if (precision === '0.5') {
+      const r = Math.round(v * 2) / 2;
+      return r % 1 === 0 ? String(Math.round(r)) : r.toFixed(1);
+    } else {
+      return String(Math.round(v));
+    }
+  }
+
+  // 【2】精度ボタンの切り替え
+  function setPrecision(p) {
+    precision = p;
+    localStorage.setItem('scalePrecision', p);
+    updatePrecisionButtons();
+    renderResults();
+  }
+
+  function updatePrecisionButtons() {
+    document.querySelectorAll('.prec-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.prec === precision);
+    });
+  }
 
   function renderList() {
     const list = document.getElementById('ingredient-list');
@@ -301,11 +454,13 @@
       row.className = 'ingredient-row';
       row.innerHTML = `
         <input type="text" placeholder="材料名" value="${escHtml(ing.name)}"
+          list="ingredient-names"
           oninput="ingredients[${i}].name=this.value; updateSelect()">
         <input type="number" placeholder="量" value="${ing.amount || ''}" min="0" step="0.1"
           oninput="ingredients[${i}].amount=parseFloat(this.value)||0">
-        <select class="unit-select" onchange="ingredients[${i}].unit=this.value;updateSelect()">
-          ${['g','ml','大さじ','小さじ','個','本','枚','カップ','cc','kg','適量'].map(u=>`<option value="${u}"${ing.unit===u?' selected':''}>${u}</option>`).join('')}
+        <select class="unit-select" onchange="ingredients[${i}].unit=this.value; updateSelect()">
+          ${['g','ml','大さじ','小さじ','個','本','枚','カップ','cc','kg','適量']
+            .map(u => `<option value="${u}"${ing.unit===u?' selected':''}>${u}</option>`).join('')}
         </select>
         <button class="del-btn" onclick="removeRow(${i})">×</button>
       `;
@@ -314,7 +469,7 @@
   }
 
   function escHtml(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
   function addRow() {
@@ -350,6 +505,27 @@
     }
   }
 
+  // クイック計算：ドライイースト 3g を基準に即計算
+  function quickCalcYeast() {
+    const qErr = document.getElementById('quick-error');
+    qErr.textContent = '';
+    const idx = ingredients.findIndex(ing => ing.name && ing.name.includes('イースト'));
+    if (idx === -1) {
+      qErr.textContent = '材料に「ドライイースト」または「イースト」を入力してください';
+      return;
+    }
+    if (!ingredients[idx].amount || ingredients[idx].amount <= 0) {
+      qErr.textContent = 'イーストの元の量を入力してください';
+      return;
+    }
+    lastRatio = 3 / ingredients[idx].amount;
+    lastBaseIdx = idx;
+    renderResults();
+    const rc = document.getElementById('result-card');
+    rc.style.display = 'block';
+    rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   function calculate() {
     const errorArea = document.getElementById('error-area');
     errorArea.innerHTML = '';
@@ -371,31 +547,34 @@
       errorArea.innerHTML = '<div class="error-msg">材料を入力してください。</div>';
       return;
     }
-
     const originalBase = ingredients[parseInt(baseIdx)].amount;
     if (!originalBase || originalBase <= 0) {
       errorArea.innerHTML = '<div class="error-msg">基準材料の元の量が0です。入力を確認してください。</div>';
       return;
     }
-    const ratio = baseAmount / originalBase;
 
-    document.getElementById('ratio-display').textContent = '×' + ratio.toFixed(3);
+    lastRatio = baseAmount / originalBase;
+    lastBaseIdx = parseInt(baseIdx);
+
+    renderResults();
+    const rc = document.getElementById('result-card');
+    rc.style.display = 'block';
+    rc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // 結果テーブルの描画（精度変更時も呼ばれる）
+  function renderResults() {
+    if (lastRatio === null) return;
+
+    document.getElementById('ratio-display').textContent = '×' + lastRatio.toFixed(3);
 
     const tbody = document.getElementById('result-body');
     tbody.innerHTML = '';
     ingredients.forEach((ing, i) => {
       if (!ing.name) return;
-      const newAmount = ing.amount * ratio;
+      const newAmount = ing.amount * lastRatio;
       const tr = document.createElement('tr');
-      if (i === parseInt(baseIdx)) tr.className = 'highlight';
-
-      const fmt = (v) => {
-        if (v === 0) return '0';
-        if (v < 1) return Math.round(v * 100) / 100;
-        if (v < 10) return Math.round(v * 10) / 10;
-        return Math.round(v);
-      };
-
+      if (i === lastBaseIdx) tr.className = 'highlight';
       tr.innerHTML = `
         <td>${escHtml(ing.name)}</td>
         <td><span class="original-val">${ing.amount}${escHtml(ing.unit)}</span></td>
@@ -403,9 +582,6 @@
       `;
       tbody.appendChild(tr);
     });
-
-    document.getElementById('result-card').style.display = 'block';
-    document.getElementById('result-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   document.getElementById('base-ingredient').addEventListener('change', function() {
@@ -415,7 +591,8 @@
     }
   });
 
-  // 初期状態：空の行を3つ表示
+  // 初期化
+  updatePrecisionButtons();
   ingredients = [
     { name: '', amount: 0, unit: 'g' },
     { name: '', amount: 0, unit: 'g' },
